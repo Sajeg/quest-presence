@@ -40,6 +40,11 @@ android {
 }
 
 dependencies {
+    // Preferences
+    implementation(libs.androidx.datastore.preferences)
+
+    // Kitty
+    implementation(libs.kizzyrpc)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
