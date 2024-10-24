@@ -142,6 +142,12 @@ fun createActivity(rpc: KizzyRPC, name: String) {
             name = name,
             details = "on a Meta Quest 3",
             type = 0,
+            assets = Assets(
+                largeImage = "mp:attachments/1196570473601962112/1299070035083399239/Meta.png?ex=671bdcbf&is=671a8b3f&hm=55b5ec49fe77741edb34d2f65aa645f65f7c6e13be6c549c45569a3ba405b7f1&",
+                smallImage = null,
+                largeText = "Meta Quest",
+                smallText = null
+            )
         ),
         status = "online",
         since = System.currentTimeMillis()

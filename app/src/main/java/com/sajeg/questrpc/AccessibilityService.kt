@@ -3,6 +3,7 @@ package com.sajeg.questrpc
 import android.accessibilityservice.AccessibilityService
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.my.kizzyrpc.KizzyRPC
 
@@ -23,6 +24,9 @@ class AccessibilityService : AccessibilityService() {
                 }
                 SettingsManager().readString("token", this) { token ->
                     rpc = KizzyRPC(token)
+                    if (packageName == "com.oculus.vrshell") {
+                        createActivity(rpc!!, "Online on Meta Quest")
+                    }
                     AppManager().getCustomAppNames(this) { names ->
                         names.forEach { name ->
                             if (name.packageName == packageName) {
