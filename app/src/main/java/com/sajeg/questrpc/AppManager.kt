@@ -14,4 +14,26 @@ class AppManager {
             SettingsManager().saveString("exclude", "$oldExclude;$app", context)
         }
     }
+
+    fun getCustomAppNames(context: Context, onResponse: (names: List<AppName>) -> Unit) {
+        SettingsManager().readString("name", context) { names ->
+            val nameList = names.split(";")
+            var appNameList = mutableListOf<AppName>()
+            nameList.forEach { name ->
+                try {
+                    appNameList.add(AppName(name.split(",")[0], name.split(",")[1]))
+                } catch (e: Exception) {
+
+                }
+            }
+
+            onResponse(appNameList.toList())
+        }
+    }
+
+    fun addCustomAppName(appName: AppName, context: Context) {
+        SettingsManager().readString("name", context) { oldNames ->
+            SettingsManager().saveString("name", "$oldNames;${appName.toString()}", context)
+        }
+    }
 }

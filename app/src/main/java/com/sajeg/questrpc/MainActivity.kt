@@ -3,6 +3,7 @@ package com.sajeg.questrpc
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
@@ -56,48 +57,53 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Main(modifier: Modifier) {
     var discordToken by remember { mutableStateOf("") }
-    var requiresSetup by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var excludedApps = listOf<String>()
+    var customNames = listOf<AppName>()
 
     AppManager().getExcludedApps(context) {
         excludedApps = it
+    }
+    AppManager().getCustomAppNames(context) {
+        customNames = it
     }
 
     Column(
         modifier = modifier
     ) {
-        SettingsManager().readString("token", context) { token ->
-            if (token == "") {
-                requiresSetup = true
-            }
-        }
-        if (requiresSetup) {
-            Text("First time set up:")
-            TextField(
-                value = discordToken,
-                onValueChange = { discordToken = it },
-                label = { Text("Enter Discord Token") }
-            )
-            Button({
-                SettingsManager().saveString("token", discordToken, context)
-            }) { Text("Save token") }
-        }
+        Text("First time set up:")
+        TextField(
+            value = discordToken,
+            onValueChange = { discordToken = it },
+            label = { Text("Enter Discord Token") }
+        )
+        Button({
+            SettingsManager().saveString("token", discordToken, context)
+        }) { Text("Save token") }
         Button({
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
             startActivity(context, intent, null)
         }) { Text("Give accessibility Service permission") }
 
-        val packageManager = context.packageManager
-        val apps = packageManager.getInstalledPackages(PackageManager.GET_META_DATA).toMutableList()
+        val apps = getInstalledNonSystemApps(context).toMutableList()
         LazyColumn {
             items(apps) { app ->
                 if (excludedApps.contains(app.packageName)) {
                     return@items
                 }
                 Row {
-                    Text(app.packageName)
-                    Text("")
+                    val packageManager = context.packageManager
+                    val appInfo = packageManager.getApplicationInfo(app.packageName, 0)
+                    val name = packageManager.getApplicationLabel(appInfo).toString()
+                    Column {
+                        Text("packages: ${app.packageName}")
+                        Text("name: $name")
+                        customNames.forEach { appName ->
+                            if (appName.packageName == app.packageName) {
+                                Text("custom: ${appName.name}")
+                            }
+                        }
+                    }
                 }
                 Row {
                     var newName by remember { mutableStateOf("") }
@@ -106,10 +112,23 @@ fun Main(modifier: Modifier) {
                         onValueChange = { newName = it },
                         label = { Text("Enter new Name") }
                     )
-                    Button({}) { Text("Save") }
+                    Button({
+                        AppManager().addCustomAppName(
+                            AppName(
+                                app.packageName,
+                                newName,
+                            ),
+                            context
+                        )
+                    }) { Text("Save") }
                 }
                 Row {
-                    Button({ AppManager().addExcludedApp(app.packageName, context) }) { Text("Exclude") }
+                    Button({
+                        AppManager().addExcludedApp(
+                            app.packageName,
+                            context
+                        )
+                    }) { Text("Exclude") }
                 }
             }
         }
@@ -122,20 +141,26 @@ fun createActivity(rpc: KizzyRPC, name: String) {
             applicationId = "1299052584761561161",
             name = name,
             details = "on a Meta Quest 3",
-            state = "Call me there",
             type = 0,
-            timestamps = Timestamps(
-                start = System.currentTimeMillis(),
-                end = System.currentTimeMillis() + 500000
-            ),
-            assets = Assets(
-                largeImage = "mp:meta",
-                smallImage = "mp:attachments/973256105515974676/983674644823412798/unknown.png",
-                largeText = "large-image-text",
-                smallText = "small-image-text",
-            ),
         ),
         status = "online",
         since = System.currentTimeMillis()
     )
+}
+
+fun getInstalledNonSystemApps(context: Context): List<ApplicationInfo> {
+    val packageManager = context.packageManager
+    val apps = mutableListOf<ApplicationInfo>()
+
+    val packages = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+
+    for (packageInfo in packages) {
+        if ((packageInfo.flags and ApplicationInfo.FLAG_SYSTEM) == 0 &&
+            (packageInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0
+        ) {
+            apps.add(packageInfo)
+        }
+    }
+
+    return apps
 }

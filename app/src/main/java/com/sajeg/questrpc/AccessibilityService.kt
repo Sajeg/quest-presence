@@ -1,6 +1,7 @@
 package com.sajeg.questrpc
 
 import android.accessibilityservice.AccessibilityService
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.view.accessibility.AccessibilityEvent
 import com.my.kizzyrpc.KizzyRPC
@@ -22,8 +23,19 @@ class AccessibilityService : AccessibilityService() {
                 }
                 SettingsManager().readString("token", this) { token ->
                     rpc = KizzyRPC(token)
-                    val appName = getAppNameFromPackageName(packageName.toString())
-                    createActivity(rpc!!, appName)
+                    AppManager().getCustomAppNames(this) { names ->
+                        names.forEach { name ->
+                            if (name.packageName == packageName) {
+                                createActivity(rpc!!, name.name)
+                                return@getCustomAppNames
+                            }
+                        }
+                        val appName = getAppNameFromPackageName(packageName.toString())
+                        if (appName == "Invalid") {
+                            return@getCustomAppNames
+                        }
+                        createActivity(rpc!!, appName)
+                    }
                 }
             }
         }
@@ -37,17 +49,19 @@ class AccessibilityService : AccessibilityService() {
     }
 
     private fun getAppNameFromPackageName(packageName: String): String {
-        return when (packageName) {
-            "com.oculus.systemux" -> "Online"
-            else -> {
-                try {
-                    val packageManager = packageManager
-                    val appInfo = packageManager.getApplicationInfo(packageName, 0)
-                    packageManager.getApplicationLabel(appInfo).toString()
-                } catch (e: PackageManager.NameNotFoundException) {
-                    packageName
-                }
+        return try {
+            val packageManager = packageManager
+            val appInfo = packageManager.getApplicationInfo(packageName, 0)
+
+            if ((appInfo.flags and ApplicationInfo.FLAG_SYSTEM) == 0 &&
+                (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0) {
+                packageManager.getApplicationLabel(appInfo).toString()
+            } else {
+                "Invalid"
             }
+
+        } catch (e: PackageManager.NameNotFoundException) {
+            packageName
         }
     }
 }
