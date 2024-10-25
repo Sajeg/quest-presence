@@ -2,80 +2,37 @@ package com.sajeg.questrpc
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
+import android.content.IntentFilter
 import android.view.accessibility.AccessibilityEvent
-import com.my.kizzyrpc.KizzyRPC
-import com.sajeg.questrpc.composables.createActivity
 
 class AccessibilityService : AccessibilityService() {
-    var rpc: KizzyRPC? = null
-    var lastPackage = ""
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        SettingsManager().saveString("service", "active", this)
+
+        ActivityManager.start(this)
+
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+        }
+        registerReceiver(ScreenStateReceiver(), filter)
+
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        SettingsManager().saveString("service", "closed", this)
-        if (rpc != null) {
-            rpc!!.closeRPC()
-        }
+        unregisterReceiver(ScreenStateReceiver())
+        ActivityManager.stop(this)
     }
 
     override fun onAccessibilityEvent(p0: AccessibilityEvent?) {
         if (p0 != null && p0.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             val packageName = p0.packageName?.toString()
-            if (lastPackage == packageName) {
-                return
-            }
-            lastPackage = packageName.toString()
-            AppManager().getExcludedApps(this) { apps ->
-                if (apps.contains(packageName)) {
-                    return@getExcludedApps
-                }
-                SettingsManager().readString("token", this) { token ->
-                    rpc = KizzyRPC(token)
-                    if (packageName == "com.oculus.vrshell") {
-                        createActivity(rpc!!, "Online on Quest", this)
-                    }
-                    AppManager().getCustomAppNames(this) { names ->
-                        names.forEach { name ->
-                            if (name.packageName == packageName) {
-                                createActivity(rpc!!, name.name, this)
-                                return@getCustomAppNames
-                            }
-                        }
-                        val appName = getAppNameFromPackageName(packageName.toString())
-                        if (appName == "Invalid") {
-                            return@getCustomAppNames
-                        }
-                        createActivity(rpc!!, appName, this)
-                    }
-                }
-            }
+            ActivityManager.appChanged(packageName.toString(), this)
         }
     }
 
     override fun onInterrupt() {
-    }
-
-    private fun getAppNameFromPackageName(packageName: String): String {
-        return try {
-            val packageManager = packageManager
-            val appInfo = packageManager.getApplicationInfo(packageName, 0)
-
-            if ((appInfo.flags and ApplicationInfo.FLAG_SYSTEM) == 0 &&
-                (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0) {
-                packageManager.getApplicationLabel(appInfo).toString()
-            } else {
-                "Invalid"
-            }
-
-        } catch (e: PackageManager.NameNotFoundException) {
-            packageName
-        }
     }
 }
