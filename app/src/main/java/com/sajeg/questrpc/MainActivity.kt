@@ -1,13 +1,16 @@
 package com.sajeg.questrpc
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -121,24 +124,29 @@ fun RightScreen(modifier: Modifier) {
     var customNames = mutableListOf<AppName>()
     var newExcludedApps = remember { mutableStateListOf<String>() }
     var newCustomNames = remember { mutableStateListOf<AppName>() }
-    val apps = getInstalledNonSystemApps(context).toMutableList()
+    var apps = remember { mutableStateListOf<ApplicationInfo>() }
 
-    Log.d("UpdateScreen", "Now")
-    AppManager().getExcludedApps(context) {
-        Log.d("UpdateScreen", it.toString())
-        excludedApps = it.toMutableStateList()
+    if (excludedApps.isEmpty()) {
+        AppManager().getExcludedApps(context) {
+            excludedApps = it.toMutableStateList()
+        }
     }
-    AppManager().getCustomAppNames(context) {
-        customNames = it.toMutableList()
+    if (customNames.isEmpty()) {
+        AppManager().getCustomAppNames(context) {
+            customNames = it.toMutableList()
+        }
+    }
+    if (apps.isEmpty()) {
+        apps = getInstalledNonSystemApps(context).toMutableStateList()
     }
 
     LazyColumn(
-        modifier = modifier.padding(15.dp)
+        modifier = modifier.padding(15.dp).animateContentSize()
     ) {
         item {
             Text("Apps: ", style = MaterialTheme.typography.headlineLarge)
         }
-        items(apps) { app ->
+        items(apps, { it }) { app ->
             if (excludedApps.contains(app.packageName) || newExcludedApps.contains(app.packageName)) {
                 return@items
             }
@@ -217,13 +225,13 @@ fun RightScreen(modifier: Modifier) {
         item {
             Text("Excluded Apps: ", style = MaterialTheme.typography.headlineLarge)
         }
-        items(newExcludedApps) { packageName ->
+        items(newExcludedApps, { it }) { packageName ->
             ExcludedAppsCard(packageName, context, modifier) {
                 AppManager().removeExcludedApp(packageName, context)
                 newExcludedApps.remove(packageName)
             }
         }
-        items(excludedApps) { packageName ->
+        items(excludedApps, { it } ) { packageName ->
             ExcludedAppsCard(packageName, context, modifier) {
                 AppManager().removeExcludedApp(packageName, context)
                 excludedApps.remove(packageName)

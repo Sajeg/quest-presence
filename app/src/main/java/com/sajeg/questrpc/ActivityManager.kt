@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.provider.Settings
-import android.util.Log
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
@@ -36,9 +35,6 @@ object ActivityManager {
         AppManager().getExcludedApps(context) { apps ->
             if (apps.contains(packageName)) {
                 return@getExcludedApps
-            }
-            if (packageName == "com.oculus.vrshell") {
-                createActivity("Online on Quest", context)
             }
             AppManager().getCustomAppNames(context) { names ->
                 names.forEach { name ->
