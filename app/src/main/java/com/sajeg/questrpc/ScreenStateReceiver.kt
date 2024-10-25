@@ -9,7 +9,6 @@ class ScreenStateReceiver : BroadcastReceiver() {
         when (p1?.action) {
             Intent.ACTION_SCREEN_ON -> {
                 ActivityManager.start(p0!!)
-                ActivityManager.appChanged("com.oculus.vrshell", p0)
             }
 
             Intent.ACTION_SCREEN_OFF -> {

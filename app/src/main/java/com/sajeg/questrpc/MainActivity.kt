@@ -11,10 +11,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -24,16 +28,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import com.my.kizzyrpc.KizzyRPC
-import com.my.kizzyrpc.model.Activity
-import com.my.kizzyrpc.model.Assets
 import com.sajeg.questrpc.composables.SignInDiscord
 import com.sajeg.questrpc.composables.getInstalledNonSystemApps
 import com.sajeg.questrpc.ui.theme.QuestRPCTheme
@@ -57,10 +60,10 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("QueryPermissionsNeeded")
 @Composable
 fun Main(modifier: Modifier) {
-    Row (
+    Row(
         modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.SpaceEvenly
-    ){
+    ) {
         LeftScreen(Modifier)
         RightScreen(Modifier)
     }
@@ -78,7 +81,6 @@ fun LeftScreen(modifier: Modifier) {
         }
     }
 
-
     if (signIn) {
         SignInDiscord { token ->
             signIn = false
@@ -91,6 +93,10 @@ fun LeftScreen(modifier: Modifier) {
     Column(
         modifier = modifier
     ) {
+        Text(
+            modifier = Modifier.padding(10.dp),
+            text = "Thank you for using Quest RPC. \nTo get started sign in to Discord \nand give the app accessibility permission."
+            )
         Button({ signIn = true }) { Text("Sign in to Discord") }
         if (tokenPresent) {
             Text("You are signed in", color = Color(0xFF4C9306))
@@ -106,10 +112,12 @@ fun LeftScreen(modifier: Modifier) {
 @Composable
 fun RightScreen(modifier: Modifier) {
     val context = LocalContext.current
+    var update by remember { mutableStateOf(true) }
     var excludedApps = listOf<String>()
     var customNames = listOf<AppName>()
 
-    LaunchedEffect(Unit) {
+    if (update) {
+        update = false
         AppManager().getExcludedApps(context) {
             excludedApps = it
         }
@@ -119,49 +127,119 @@ fun RightScreen(modifier: Modifier) {
     }
 
     val apps = getInstalledNonSystemApps(context).toMutableList()
-    LazyColumn {
+    LazyColumn(
+        modifier = modifier.padding(15.dp)
+    ) {
+        item {
+            Text("Apps: ", style = MaterialTheme.typography.headlineLarge)
+        }
         items(apps) { app ->
             if (excludedApps.contains(app.packageName)) {
                 return@items
             }
-            Row {
+            Card(
+                modifier = Modifier
+                    .width(600.dp)
+                    .padding(vertical = 10.dp)
+            ) {
                 val packageManager = context.packageManager
                 val appInfo = packageManager.getApplicationInfo(app.packageName, 0)
                 val name = packageManager.getApplicationLabel(appInfo).toString()
-                Column {
-                    Text("packages: ${app.packageName}")
-                    Text("name: $name")
-                    customNames.forEach { appName ->
-                        if (appName.packageName == app.packageName) {
-                            Text("custom: ${appName.name}")
-                        }
+                var newName by remember { mutableStateOf("") }
+                var customAppName: String? = null
+
+                customNames.forEach { appName ->
+                    if (appName.packageName == app.packageName) {
+                        customAppName = appName.name
                     }
                 }
-            }
-            Row {
-                var newName by remember { mutableStateOf("") }
-                TextField(
-                    value = newName,
-                    onValueChange = { newName = it },
-                    label = { Text("Enter new Name") }
-                )
-                Button({
-                    AppManager().addCustomAppName(
-                        AppName(
-                            app.packageName,
-                            newName,
-                        ),
-                        context
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 15.dp)
+                        .padding(top = 15.dp)
+                        .fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.weight(0.1f)
+                    ) {
+                        if (customAppName == null) {
+                            Text(name, style = MaterialTheme.typography.headlineMedium)
+                        } else {
+                            Text(customAppName, style = MaterialTheme.typography.headlineMedium)
+                        }
+                        Text(app.packageName, style = MaterialTheme.typography.bodyMedium)
+                    }
+
+                    Button(
+                        modifier = Modifier.width(100.dp),
+                        onClick = {
+                            AppManager().addExcludedApp(app.packageName, context)
+                            update = true
+                        }) { Text("Exclude") }
+                }
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 15.dp)
+                        .padding(bottom = 15.dp)
+                        .fillMaxWidth()
+                ) {
+                    TextField(
+                        modifier = Modifier.weight(0.1f),
+                        value = newName,
+                        onValueChange = { newName = it },
+                        label = { Text("Override app name") },
+                        maxLines = 1
                     )
-                }) { Text("Save") }
+
+                    Button(
+                        modifier = Modifier.width(100.dp),
+                        onClick = {
+                            AppManager().addCustomAppName(
+                                AppName(app.packageName, newName), context
+                            )
+                            update = true
+                        }
+                    ) { Text("Save") }
+                }
             }
-            Row {
-                Button({
-                    AppManager().addExcludedApp(
-                        app.packageName,
-                        context
-                    )
-                }) { Text("Exclude") }
+        }
+
+        item {
+            Text("Excluded Apps: ", style = MaterialTheme.typography.headlineLarge)
+        }
+
+        items(excludedApps) { packageName ->
+            if (packageName == "null") {
+                return@items
+            }
+            val packageManager = context.packageManager
+            val appInfo = packageManager.getApplicationInfo(packageName, 0)
+            val name = packageManager.getApplicationLabel(appInfo).toString()
+            Card(
+                modifier = Modifier
+                    .padding(5.dp)
+                    .width(600.dp)
+            ) {
+                Row(
+                    modifier = modifier.padding(15.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = Modifier.weight(0.1f)
+                    ) {
+                        Text(name, style = MaterialTheme.typography.bodyLarge)
+                        Text(packageName, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Button(
+                        modifier = Modifier.width(100.dp),
+                        onClick = {
+                            AppManager().removeExcludedApp(packageName, context)
+                            update = true
+                        }
+                    ) {
+                        Text("Include")
+                    }
+                }
             }
         }
     }

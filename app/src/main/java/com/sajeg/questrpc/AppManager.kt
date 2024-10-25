@@ -15,6 +15,19 @@ class AppManager {
         }
     }
 
+    fun removeExcludedApp(includedApp: String, context: Context) {
+        SettingsManager().readString("exclude", context) { oldExclude ->
+            val oldAppList = oldExclude.split(";")
+            val newAppList = mutableListOf<String>()
+            oldAppList.forEach { app ->
+                if (app != includedApp) {
+                    newAppList.add(app)
+                }
+            }
+            SettingsManager().saveString("exclude", newAppList.joinToString(";"), context)
+        }
+    }
+
     fun getCustomAppNames(context: Context, onResponse: (names: List<AppName>) -> Unit) {
         SettingsManager().readString("name", context) { names ->
             val nameList = names.split(";")

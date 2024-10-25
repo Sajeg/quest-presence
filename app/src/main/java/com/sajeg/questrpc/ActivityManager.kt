@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.provider.Settings
+import android.util.Log
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
@@ -22,6 +23,7 @@ object ActivityManager {
         SettingsManager().saveString("service", "closed", context)
         if (rpc != null) {
             rpc!!.closeRPC()
+            rpc == null
         }
         lastPackage = ""
     }
