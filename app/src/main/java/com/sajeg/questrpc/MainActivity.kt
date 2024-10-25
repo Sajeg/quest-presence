@@ -7,6 +7,12 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
+import android.view.View
+import android.view.ViewGroup
+import android.webkit.JavascriptInterface
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,12 +27,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat.startActivity
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -34,7 +43,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
-import com.my.kizzyrpc.model.Timestamps
 import com.sajeg.questrpc.ui.theme.QuestRPCTheme
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -56,30 +64,40 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("QueryPermissionsNeeded")
 @Composable
 fun Main(modifier: Modifier) {
-    var discordToken by remember { mutableStateOf("") }
+    var signIn by remember { mutableStateOf(false) }
+    var tokenPresent by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var excludedApps = listOf<String>()
     var customNames = listOf<AppName>()
 
-    AppManager().getExcludedApps(context) {
-        excludedApps = it
+    LaunchedEffect(Unit) {
+        AppManager().getExcludedApps(context) {
+            excludedApps = it
+        }
+        AppManager().getCustomAppNames(context) {
+            customNames = it
+        }
+        SettingsManager().readString("token", context) { token ->
+            tokenPresent = token.length > 5
+        }
     }
-    AppManager().getCustomAppNames(context) {
-        customNames = it
+
+    if (signIn) {
+        SignInDiscord { token ->
+            signIn = false
+            tokenPresent = true
+            SettingsManager().saveString("token", token.toString(), context)
+        }
+        return
     }
 
     Column(
         modifier = modifier
     ) {
-        Text("First time set up:")
-        TextField(
-            value = discordToken,
-            onValueChange = { discordToken = it },
-            label = { Text("Enter Discord Token") }
-        )
-        Button({
-            SettingsManager().saveString("token", discordToken, context)
-        }) { Text("Save token") }
+        Button({ signIn = true }) { Text("Sign in to Discord") }
+        if (tokenPresent) {
+            Text("You are signed in", color = Color(0xFF4C9306))
+        }
         Button({
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
             startActivity(context, intent, null)
@@ -169,4 +187,49 @@ fun getInstalledNonSystemApps(context: Context): List<ApplicationInfo> {
     }
 
     return apps
+}
+
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+fun SignInDiscord(onDataRetrieved: (token: String?) -> Unit) {
+    val url = "https://discord.com/login"
+    val jsCode = "(webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken()"
+    AndroidView(factory = {
+        WebView(it).apply {
+            settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+            }
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+
+            webViewClient = object : WebViewClient() {
+                @Deprecated("Deprecated in Java")
+                override fun shouldOverrideUrlLoading(
+                    webView: WebView,
+                    url: String,
+                ): Boolean {
+                    stopLoading()
+                    if (url.endsWith("/app")) {
+                        evaluateJavascript(jsCode) { value ->
+                            if (value != null && !value.startsWith("Error")) {
+                                val token =
+                                    value.replace("\"", "")
+                                onDataRetrieved(token)
+                                Log.d("FetchedToken", "Success")
+                            } else {
+                                Log.d("FetchedToken", "Failed to fetch token: $value")
+                            }
+                        }
+                    }
+                    visibility = View.GONE
+                    return false
+                }
+            }
+
+            loadUrl(url)
+        }
+    })
 }

@@ -25,7 +25,7 @@ class AccessibilityService : AccessibilityService() {
                 SettingsManager().readString("token", this) { token ->
                     rpc = KizzyRPC(token)
                     if (packageName == "com.oculus.vrshell") {
-                        createActivity(rpc!!, "Online on Meta Quest")
+                        createActivity(rpc!!, "Online on Quest")
                     }
                     AppManager().getCustomAppNames(this) { names ->
                         names.forEach { name ->
