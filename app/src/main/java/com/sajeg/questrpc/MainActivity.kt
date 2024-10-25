@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,9 +26,12 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,6 +44,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.sajeg.questrpc.composables.SignInDiscord
 import com.sajeg.questrpc.composables.getInstalledNonSystemApps
 import com.sajeg.questrpc.ui.theme.QuestRPCTheme
+import kotlin.collections.remove
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -96,7 +101,7 @@ fun LeftScreen(modifier: Modifier) {
         Text(
             modifier = Modifier.padding(10.dp),
             text = "Thank you for using Quest RPC. \nTo get started sign in to Discord \nand give the app accessibility permission."
-            )
+        )
         Button({ signIn = true }) { Text("Sign in to Discord") }
         if (tokenPresent) {
             Text("You are signed in", color = Color(0xFF4C9306))
@@ -112,21 +117,21 @@ fun LeftScreen(modifier: Modifier) {
 @Composable
 fun RightScreen(modifier: Modifier) {
     val context = LocalContext.current
-    var update by remember { mutableStateOf(true) }
-    var excludedApps = listOf<String>()
-    var customNames = listOf<AppName>()
+    var excludedApps = remember { mutableStateListOf<String>() }
+    var customNames = mutableListOf<AppName>()
+    var newExcludedApps = remember { mutableStateListOf<String>() }
+    var newCustomNames = remember { mutableStateListOf<AppName>() }
+    val apps = getInstalledNonSystemApps(context).toMutableList()
 
-    if (update) {
-        update = false
-        AppManager().getExcludedApps(context) {
-            excludedApps = it
-        }
-        AppManager().getCustomAppNames(context) {
-            customNames = it
-        }
+    Log.d("UpdateScreen", "Now")
+    AppManager().getExcludedApps(context) {
+        Log.d("UpdateScreen", it.toString())
+        excludedApps = it.toMutableStateList()
+    }
+    AppManager().getCustomAppNames(context) {
+        customNames = it.toMutableList()
     }
 
-    val apps = getInstalledNonSystemApps(context).toMutableList()
     LazyColumn(
         modifier = modifier.padding(15.dp)
     ) {
@@ -134,7 +139,7 @@ fun RightScreen(modifier: Modifier) {
             Text("Apps: ", style = MaterialTheme.typography.headlineLarge)
         }
         items(apps) { app ->
-            if (excludedApps.contains(app.packageName)) {
+            if (excludedApps.contains(app.packageName) || newExcludedApps.contains(app.packageName)) {
                 return@items
             }
             Card(
@@ -149,6 +154,11 @@ fun RightScreen(modifier: Modifier) {
                 var customAppName: String? = null
 
                 customNames.forEach { appName ->
+                    if (appName.packageName == app.packageName) {
+                        customAppName = appName.name
+                    }
+                }
+                newCustomNames.forEach { appName ->
                     if (appName.packageName == app.packageName) {
                         customAppName = appName.name
                     }
@@ -174,7 +184,7 @@ fun RightScreen(modifier: Modifier) {
                         modifier = Modifier.width(100.dp),
                         onClick = {
                             AppManager().addExcludedApp(app.packageName, context)
-                            update = true
+                            newExcludedApps.add(app.packageName)
                         }) { Text("Exclude") }
                 }
                 Row(
@@ -194,10 +204,10 @@ fun RightScreen(modifier: Modifier) {
                     Button(
                         modifier = Modifier.width(100.dp),
                         onClick = {
-                            AppManager().addCustomAppName(
-                                AppName(app.packageName, newName), context
-                            )
-                            update = true
+                            val newApp = AppName(app.packageName, newName)
+                            AppManager().addCustomAppName(newApp, context)
+                            newCustomNames.add(newApp)
+                            newName = ""
                         }
                     ) { Text("Save") }
                 }
@@ -207,39 +217,54 @@ fun RightScreen(modifier: Modifier) {
         item {
             Text("Excluded Apps: ", style = MaterialTheme.typography.headlineLarge)
         }
-
-        items(excludedApps) { packageName ->
-            if (packageName == "null") {
-                return@items
+        items(newExcludedApps) { packageName ->
+            ExcludedAppsCard(packageName, context, modifier) {
+                AppManager().removeExcludedApp(packageName, context)
+                newExcludedApps.remove(packageName)
             }
-            val packageManager = context.packageManager
-            val appInfo = packageManager.getApplicationInfo(packageName, 0)
-            val name = packageManager.getApplicationLabel(appInfo).toString()
-            Card(
-                modifier = Modifier
-                    .padding(5.dp)
-                    .width(600.dp)
+        }
+        items(excludedApps) { packageName ->
+            ExcludedAppsCard(packageName, context, modifier) {
+                AppManager().removeExcludedApp(packageName, context)
+                excludedApps.remove(packageName)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExcludedAppsCard(
+    packageName: String,
+    context: Context,
+    modifier: Modifier,
+    onIncludePressed: (packageName : String) -> Unit
+) {
+    if (packageName == "null") {
+        return
+    }
+    val packageManager = context.packageManager
+    val appInfo = packageManager.getApplicationInfo(packageName, 0)
+    val name = packageManager.getApplicationLabel(appInfo).toString()
+    Card(
+        modifier = Modifier
+            .padding(vertical = 5.dp)
+            .width(600.dp)
+    ) {
+        Row(
+            modifier = modifier.padding(15.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(0.1f)
             ) {
-                Row(
-                    modifier = modifier.padding(15.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier.weight(0.1f)
-                    ) {
-                        Text(name, style = MaterialTheme.typography.bodyLarge)
-                        Text(packageName, style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Button(
-                        modifier = Modifier.width(100.dp),
-                        onClick = {
-                            AppManager().removeExcludedApp(packageName, context)
-                            update = true
-                        }
-                    ) {
-                        Text("Include")
-                    }
-                }
+                Text(name, style = MaterialTheme.typography.bodyLarge)
+                Text(packageName, style = MaterialTheme.typography.bodyMedium)
+            }
+            Button(
+                modifier = Modifier.width(100.dp),
+                onClick = { onIncludePressed(packageName) }
+            ) {
+                Text("Include")
             }
         }
     }
