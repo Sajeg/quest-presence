@@ -6,6 +6,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.view.accessibility.AccessibilityEvent
 import com.my.kizzyrpc.KizzyRPC
+import com.sajeg.questrpc.composables.createActivity
 
 class AccessibilityService : AccessibilityService() {
     var rpc: KizzyRPC? = null
@@ -38,12 +39,12 @@ class AccessibilityService : AccessibilityService() {
                 SettingsManager().readString("token", this) { token ->
                     rpc = KizzyRPC(token)
                     if (packageName == "com.oculus.vrshell") {
-                        createActivity(rpc!!, "Online on Quest")
+                        createActivity(rpc!!, "Online on Quest", this)
                     }
                     AppManager().getCustomAppNames(this) { names ->
                         names.forEach { name ->
                             if (name.packageName == packageName) {
-                                createActivity(rpc!!, name.name)
+                                createActivity(rpc!!, name.name, this)
                                 return@getCustomAppNames
                             }
                         }
@@ -51,7 +52,7 @@ class AccessibilityService : AccessibilityService() {
                         if (appName == "Invalid") {
                             return@getCustomAppNames
                         }
-                        createActivity(rpc!!, appName)
+                        createActivity(rpc!!, appName, this)
                     }
                 }
             }
