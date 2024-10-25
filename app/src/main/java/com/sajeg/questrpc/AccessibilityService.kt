@@ -1,15 +1,28 @@
 package com.sajeg.questrpc
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.my.kizzyrpc.KizzyRPC
 
 class AccessibilityService : AccessibilityService() {
     var rpc: KizzyRPC? = null
     var lastPackage = ""
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        SettingsManager().saveString("service", "active", this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        SettingsManager().saveString("service", "closed", this)
+        if (rpc != null) {
+            rpc!!.closeRPC()
+        }
+    }
 
     override fun onAccessibilityEvent(p0: AccessibilityEvent?) {
         if (p0 != null && p0.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
@@ -46,10 +59,6 @@ class AccessibilityService : AccessibilityService() {
     }
 
     override fun onInterrupt() {
-        if (rpc == null) {
-            return
-        }
-        rpc!!.closeRPC()
     }
 
     private fun getAppNameFromPackageName(packageName: String): String {

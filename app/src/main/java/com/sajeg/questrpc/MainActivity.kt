@@ -6,11 +6,9 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
@@ -66,6 +64,7 @@ class MainActivity : ComponentActivity() {
 fun Main(modifier: Modifier) {
     var signIn by remember { mutableStateOf(false) }
     var tokenPresent by remember { mutableStateOf(false) }
+    var servicePresent by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var excludedApps = listOf<String>()
     var customNames = listOf<AppName>()
@@ -81,6 +80,11 @@ fun Main(modifier: Modifier) {
             tokenPresent = token.length > 5
         }
     }
+
+    SettingsManager().readString("service", context) { state ->
+        servicePresent = state == "active"
+    }
+
 
     if (signIn) {
         SignInDiscord { token ->
@@ -99,9 +103,18 @@ fun Main(modifier: Modifier) {
             Text("You are signed in", color = Color(0xFF4C9306))
         }
         Button({
-            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            val intent = Intent("android.settings.ACCESSIBILITY_SETTINGS");
+            intent.setPackage("com.android.settings");
             startActivity(context, intent, null)
-        }) { Text("Give accessibility Service permission") }
+        }) { Text("Give accessibility service permission") }
+        if (servicePresent) {
+            Text("Service runs", color = Color(0xFF4C9306))
+        } else {
+            Text(
+                text = "Please give this permission. The app won't function without it.",
+                color = Color(0xFF930606)
+            )
+        }
 
         val apps = getInstalledNonSystemApps(context).toMutableList()
         LazyColumn {
@@ -193,7 +206,8 @@ fun getInstalledNonSystemApps(context: Context): List<ApplicationInfo> {
 @Composable
 fun SignInDiscord(onDataRetrieved: (token: String?) -> Unit) {
     val url = "https://discord.com/login"
-    val jsCode = "(webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken()"
+    val jsCode =
+        "(webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken()"
     AndroidView(factory = {
         WebView(it).apply {
             settings.apply {
