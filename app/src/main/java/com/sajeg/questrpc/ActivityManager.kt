@@ -1,16 +1,15 @@
 package com.sajeg.questrpc
 
 import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.provider.Settings
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
+import com.sajeg.questrpc.composables.getInstalledVrGames
 
 object ActivityManager {
     var rpc: KizzyRPC? = null
-    var lastPackage = ""
 
     fun start(context: Context) {
         SettingsManager().readString("token", context) { token ->
@@ -24,30 +23,30 @@ object ActivityManager {
             rpc!!.closeRPC()
             rpc == null
         }
-        lastPackage = ""
     }
 
     fun appChanged(packageName: String, context: Context) {
-        if (lastPackage == packageName || rpc == null) {
+        if (rpc == null) {
             return
         }
-        lastPackage = packageName.toString()
-        AppManager().getExcludedApps(context) { apps ->
-            if (apps.contains(packageName)) {
-                return@getExcludedApps
-            }
-            AppManager().getCustomAppNames(context) { names ->
-                names.forEach { name ->
-                    if (name.packageName == packageName) {
-                        createActivity(name.name, context)
-                        return@getCustomAppNames
+        val apps = getInstalledVrGames(context)
+        apps.forEach { vrGame ->
+            if (vrGame.packageName == packageName) {
+                AppManager().getExcludedApps(context) { apps ->
+                    if (apps.contains(packageName)) {
+                        return@getExcludedApps
+                    }
+                    AppManager().getCustomAppNames(context) { names ->
+                        names.forEach { name ->
+                            if (name.packageName == packageName) {
+                                createActivity(name.name, context)
+                                return@getCustomAppNames
+                            }
+                        }
+                        val appName = getAppNameFromPackageName(packageName.toString(), context)
+                        createActivity(appName, context)
                     }
                 }
-                val appName = getAppNameFromPackageName(packageName.toString(), context)
-                if (appName == "Invalid") {
-                    return@getCustomAppNames
-                }
-                createActivity(appName, context)
             }
         }
     }
@@ -57,14 +56,7 @@ object ActivityManager {
             val packageManager = context.packageManager
             val appInfo = packageManager.getApplicationInfo(packageName, 0)
 
-            if ((appInfo.flags and ApplicationInfo.FLAG_SYSTEM) == 0 &&
-                (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0
-            ) {
-                packageManager.getApplicationLabel(appInfo).toString()
-            } else {
-                "Invalid"
-            }
-
+            packageManager.getApplicationLabel(appInfo).toString()
         } catch (e: PackageManager.NameNotFoundException) {
             packageName
         }

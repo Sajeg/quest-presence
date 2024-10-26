@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 
-fun getInstalledNonSystemApps(context: Context): List<ApplicationInfo> {
+fun getInstalledVrGames(context: Context): List<ApplicationInfo> {
     val packageManager = context.packageManager
     val apps = mutableListOf<ApplicationInfo>()
     val excludedMetaSystemApps = listOf<String>(
@@ -45,7 +45,14 @@ fun getInstalledNonSystemApps(context: Context): List<ApplicationInfo> {
             (packageInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0 &&
             !excludedMetaSystemApps.contains(packageInfo.packageName)
         ) {
-            apps.add(packageInfo)
+            packageInfo.metaData?.let {
+                it.keySet().forEach {
+                    if (it.contains("com.oculus") || it.contains("pvr.") || it.contains("vr.application.mode")) {
+                        apps.add(packageInfo)
+                        return@let
+                    }
+                }
+            }
         }
     }
 

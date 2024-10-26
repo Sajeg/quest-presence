@@ -1,12 +1,10 @@
 package com.sajeg.questrpc
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -33,7 +31,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,9 +42,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.sajeg.questrpc.composables.SignInDiscord
-import com.sajeg.questrpc.composables.getInstalledNonSystemApps
+import com.sajeg.questrpc.composables.getInstalledVrGames
 import com.sajeg.questrpc.ui.theme.QuestRPCTheme
-import kotlin.collections.remove
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -137,7 +133,7 @@ fun RightScreen(modifier: Modifier) {
         }
     }
     if (apps.isEmpty()) {
-        apps = getInstalledNonSystemApps(context).toMutableStateList()
+        apps = getInstalledVrGames(context).toMutableStateList()
     }
 
     LazyColumn(
