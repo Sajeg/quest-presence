@@ -121,6 +121,7 @@ fun RightScreen(modifier: Modifier) {
     var newExcludedApps = remember { mutableStateListOf<String>() }
     var newCustomNames = remember { mutableStateListOf<AppName>() }
     var apps = remember { mutableStateListOf<ApplicationInfo>() }
+    var storeNames = remember { mutableStateListOf<AppName>() }
 
     if (excludedApps.isEmpty()) {
         AppManager().getExcludedApps(context) {
@@ -134,6 +135,20 @@ fun RightScreen(modifier: Modifier) {
     }
     if (apps.isEmpty()) {
         apps = getInstalledVrGames(context).toMutableStateList()
+        AppManager().getStoreNames(context) { savedStoreNames ->
+            if (savedStoreNames.isEmpty()) {
+                val packageNames = mutableListOf<String>()
+                apps.forEach { app ->
+                    packageNames.add(app.packageName)
+                }
+                MetaDataDownloader().getAppsName(packageNames) { newNames ->
+                    storeNames = newNames.toMutableStateList()
+                    AppManager().addStoreNames(newNames, context)
+                }
+            } else {
+                storeNames = savedStoreNames.toMutableStateList()
+            }
+        }
     }
 
     LazyColumn(
@@ -155,8 +170,13 @@ fun RightScreen(modifier: Modifier) {
                 val appInfo = packageManager.getApplicationInfo(app.packageName, 0)
                 val name = packageManager.getApplicationLabel(appInfo).toString()
                 var newName by remember { mutableStateOf("") }
-                var customAppName: String? = null
+                var customAppName by remember { mutableStateOf<String?>(null) }
 
+                storeNames.forEach { appName ->
+                    if (appName.packageName == app.packageName) {
+                        customAppName = appName.name
+                    }
+                }
                 customNames.forEach { appName ->
                     if (appName.packageName == app.packageName) {
                         customAppName = appName.name
@@ -179,7 +199,7 @@ fun RightScreen(modifier: Modifier) {
                         if (customAppName == null) {
                             Text(name, style = MaterialTheme.typography.headlineMedium)
                         } else {
-                            Text(customAppName, style = MaterialTheme.typography.headlineMedium)
+                            Text(customAppName!!, style = MaterialTheme.typography.headlineMedium)
                         }
                         Text(app.packageName, style = MaterialTheme.typography.bodyMedium)
                     }
