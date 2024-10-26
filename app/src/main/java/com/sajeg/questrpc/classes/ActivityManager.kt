@@ -43,8 +43,14 @@ object ActivityManager {
                                 return@getCustomAppNames
                             }
                         }
-                        val appName = getAppNameFromPackageName(packageName.toString(), context)
-                        createActivity(appName, context)
+                        AppManager().getStoreNames(context) { savedStoreNames ->
+                            savedStoreNames.forEach { name ->
+                                createActivity(name.name, context)
+                                return@getStoreNames
+                            }
+                            val appName = getAppNameFromPackageName(packageName.toString(), context)
+                            createActivity(appName, context)
+                        }
                     }
                 }
             }
