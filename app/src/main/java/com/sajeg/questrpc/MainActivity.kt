@@ -41,9 +41,20 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.sajeg.questrpc.classes.AppManager
+import com.sajeg.questrpc.classes.AppName
+import com.sajeg.questrpc.classes.BackgroundUpdater
+import com.sajeg.questrpc.classes.MetaDataDownloader
+import com.sajeg.questrpc.classes.SettingsManager
 import com.sajeg.questrpc.composables.SignInDiscord
 import com.sajeg.questrpc.composables.getInstalledVrGames
 import com.sajeg.questrpc.ui.theme.QuestRPCTheme
+import java.util.concurrent.TimeUnit
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -55,6 +66,21 @@ class MainActivity : ComponentActivity() {
             QuestRPCTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Main(Modifier.padding(innerPadding))
+                    val uploadWorkRequest =
+                        PeriodicWorkRequestBuilder<BackgroundUpdater>(6, TimeUnit.HOURS)
+                            .setConstraints(
+                                Constraints.Builder()
+                                    .setRequiredNetworkType(NetworkType.UNMETERED)
+                                    .build()
+                            )
+                            .build()
+                    WorkManager
+                        .getInstance(this)
+                        .enqueueUniquePeriodicWork(
+                            "updateNames",
+                            ExistingPeriodicWorkPolicy.KEEP,
+                            uploadWorkRequest
+                        )
                 }
             }
         }
@@ -152,7 +178,9 @@ fun RightScreen(modifier: Modifier) {
     }
 
     LazyColumn(
-        modifier = modifier.padding(15.dp).animateContentSize()
+        modifier = modifier
+            .padding(15.dp)
+            .animateContentSize()
     ) {
         item {
             Text("Apps: ", style = MaterialTheme.typography.headlineLarge)
@@ -247,7 +275,7 @@ fun RightScreen(modifier: Modifier) {
                 newExcludedApps.remove(packageName)
             }
         }
-        items(excludedApps, { it } ) { packageName ->
+        items(excludedApps, { it }) { packageName ->
             ExcludedAppsCard(packageName, context, modifier) {
                 AppManager().removeExcludedApp(packageName, context)
                 excludedApps.remove(packageName)
@@ -261,7 +289,7 @@ private fun ExcludedAppsCard(
     packageName: String,
     context: Context,
     modifier: Modifier,
-    onIncludePressed: (packageName : String) -> Unit
+    onIncludePressed: (packageName: String) -> Unit
 ) {
     if (packageName == "null") {
         return

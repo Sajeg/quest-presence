@@ -40,6 +40,9 @@ android {
 }
 
 dependencies {
+    // Work Manager
+    implementation(libs.androidx.work.runtime.ktx)
+
     // Preferences
     implementation(libs.androidx.datastore.preferences)
 

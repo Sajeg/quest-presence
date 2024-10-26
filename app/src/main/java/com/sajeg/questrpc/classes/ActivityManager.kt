@@ -1,4 +1,4 @@
-package com.sajeg.questrpc
+package com.sajeg.questrpc.classes
 
 import android.content.Context
 import android.content.pm.PackageManager

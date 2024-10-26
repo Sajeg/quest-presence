@@ -1,8 +1,6 @@
-package com.sajeg.questrpc
+package com.sajeg.questrpc.classes
 
-import android.content.Context
 import android.util.JsonReader
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

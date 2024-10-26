@@ -1,4 +1,4 @@
-package com.sajeg.questrpc
+package com.sajeg.questrpc.classes
 
 import android.content.BroadcastReceiver
 import android.content.Context

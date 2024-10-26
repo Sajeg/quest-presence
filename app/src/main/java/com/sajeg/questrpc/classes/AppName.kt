@@ -1,4 +1,4 @@
-package com.sajeg.questrpc
+package com.sajeg.questrpc.classes
 
 data class AppName(val packageName: String, val name: String) {
     override fun toString(): String {

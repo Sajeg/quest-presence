@@ -1,8 +1,9 @@
-package com.sajeg.questrpc
+package com.sajeg.questrpc.classes
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sajeg.questrpc.dataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
