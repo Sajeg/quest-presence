@@ -49,6 +49,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.sajeg.questrpc.classes.ActivityManager
 import com.sajeg.questrpc.classes.AppManager
 import com.sajeg.questrpc.classes.AppName
 import com.sajeg.questrpc.classes.BackgroundUpdater
@@ -122,25 +123,30 @@ fun LeftScreen(modifier: Modifier) {
             signIn = false
             tokenPresent = true
             SettingsManager().saveString("token", token.toString(), context)
+            ActivityManager.start(context)
         }
         return
     }
 
     Column(
-        modifier = modifier
+        modifier = modifier.padding(start = 10.dp)
     ) {
         Text(
             modifier = Modifier.padding(10.dp),
-            text = "Thank you for using Quest RPC. \nTo get started sign in to Discord \nand give the app accessibility permission."
+            text = "Thank you for using Quest RPC. \nPlease sign in to Discord first \nand then give the app accessibility permission. \n \nNote: on first start the app names can be shown wrong. \nThat'll change with the next app start."
         )
-        Button({ signIn = true }) { Text("Sign in to Discord") }
+        Button({ signIn = true; ActivityManager.stop(context) }) { Text("Sign in to Discord") }
         if (tokenPresent) {
             Text("You are signed in", color = Color(0xFF4C9306))
         }
         Button({
-            val intent = Intent("android.settings.ACCESSIBILITY_SETTINGS");
-            intent.setPackage("com.android.settings");
-            startActivity(context, intent, null)
+            SettingsManager().readString("token", context) { token ->
+                if (token != "null") {
+                    val intent = Intent("android.settings.ACCESSIBILITY_SETTINGS");
+                    intent.setPackage("com.android.settings");
+                    startActivity(context, intent, null)
+                }
+            }
         }) { Text("Give accessibility service permission") }
         Spacer(Modifier.height(30.dp))
         if (changes != null) {
@@ -215,7 +221,11 @@ fun RightScreen(modifier: Modifier) {
                 return@items
             }
             val appInfo = packageManager.getApplicationInfo(appInfo.packageName, 0)
-            val name by remember { mutableStateOf(packageManager.getApplicationLabel(appInfo).toString()) }
+            val name by remember {
+                mutableStateOf(
+                    packageManager.getApplicationLabel(appInfo).toString()
+                )
+            }
             val app = AppName(appInfo.packageName, name)
             customNames.forEach { appName ->
                 if (appName.packageName == app.packageName) {
