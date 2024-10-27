@@ -55,6 +55,7 @@ import com.sajeg.questrpc.classes.AppName
 import com.sajeg.questrpc.classes.BackgroundUpdater
 import com.sajeg.questrpc.classes.MetaDataDownloader
 import com.sajeg.questrpc.classes.SettingsManager
+import com.sajeg.questrpc.classes.WebRequest
 import com.sajeg.questrpc.composables.SignInDiscord
 import com.sajeg.questrpc.composables.checkForUpdates
 import com.sajeg.questrpc.composables.getInstalledVrGames

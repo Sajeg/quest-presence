@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -41,6 +42,9 @@ android {
 }
 
 dependencies {
+    // HttpRequests
+    implementation(libs.okhttp)
+
     // Work Manager
     implementation(libs.androidx.work.runtime.ktx)
 
