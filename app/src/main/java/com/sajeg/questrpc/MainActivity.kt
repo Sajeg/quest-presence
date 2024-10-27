@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -143,7 +144,10 @@ fun LeftScreen(modifier: Modifier) {
         }) { Text("Give accessibility service permission") }
         Spacer(Modifier.height(30.dp))
         if (changes != null) {
-            Text(modifier = Modifier.width(280.dp), text = "Update available. Changes: \n\n $changes")
+            Text(
+                modifier = Modifier.width(280.dp),
+                text = "Update available. Changes: \n\n $changes"
+            )
         }
     }
 }
@@ -157,6 +161,8 @@ fun RightScreen(modifier: Modifier) {
     var newCustomNames = remember { mutableStateListOf<AppName>() }
     var apps = remember { mutableStateListOf<ApplicationInfo>() }
     var storeNames = remember { mutableStateListOf<AppName>() }
+    var storePackages = remember { mutableStateListOf<String>() }
+    val packageManager = context.packageManager
 
     if (excludedApps.isEmpty()) {
         AppManager().getExcludedApps(context) {
@@ -178,101 +184,71 @@ fun RightScreen(modifier: Modifier) {
                 }
                 MetaDataDownloader().getAppsName(packageNames) { newNames ->
                     storeNames = newNames.toMutableStateList()
+                    storeNames.sortedBy { it.name }
+                    storeNames.forEach { storePackages.add(it.packageName) }
                     AppManager().addStoreNames(newNames, context)
                 }
             } else {
+                Log.d("Recomposing", "Done")
                 storeNames = savedStoreNames.toMutableStateList()
+                storeNames.sortedBy { it.name }
+                storeNames.forEach { storePackages.add(it.packageName) }
             }
         }
     }
-
     LazyColumn(
         modifier = modifier
             .padding(15.dp)
             .animateContentSize()
     ) {
         item {
-            Text("Apps: ", style = MaterialTheme.typography.headlineLarge)
+            Column {
+                Text("Unknown Apps: ", style = MaterialTheme.typography.headlineLarge)
+                Text("You may want to exclude them", style = MaterialTheme.typography.bodyMedium)
+            }
         }
-        items(apps, { it }) { app ->
+        items(apps, { it }) { appInfo ->
+            if (excludedApps.contains(appInfo.packageName) ||
+                newExcludedApps.contains(appInfo.packageName) ||
+                storePackages.contains(appInfo.packageName)
+            ) {
+                return@items
+            }
+            val appInfo = packageManager.getApplicationInfo(appInfo.packageName, 0)
+            val name by remember { mutableStateOf(packageManager.getApplicationLabel(appInfo).toString()) }
+            val app = AppName(appInfo.packageName, name)
+            customNames.forEach { appName ->
+                if (appName.packageName == app.packageName) {
+                    app.name = appName.name
+                }
+            }
+            newCustomNames.forEach { appName ->
+                if (appName.packageName == app.packageName) {
+                    app.name = appName.name
+                }
+            }
+
+            AppCard(context, app, { newCustomNames.add(it) }, { newExcludedApps.add(it) })
+        }
+        item {
+            Text("Recognized Apps: ", style = MaterialTheme.typography.headlineLarge)
+        }
+        items(storeNames, { it.packageName }) { app ->
             if (excludedApps.contains(app.packageName) || newExcludedApps.contains(app.packageName)) {
                 return@items
             }
-            Card(
-                modifier = Modifier
-                    .width(600.dp)
-                    .padding(vertical = 10.dp)
-            ) {
-                val packageManager = context.packageManager
-                val appInfo = packageManager.getApplicationInfo(app.packageName, 0)
-                val name = packageManager.getApplicationLabel(appInfo).toString()
-                var newName by remember { mutableStateOf("") }
-                var customAppName by remember { mutableStateOf<String?>(null) }
-
-                storeNames.forEach { appName ->
-                    if (appName.packageName == app.packageName) {
-                        customAppName = appName.name
-                    }
-                }
-                customNames.forEach { appName ->
-                    if (appName.packageName == app.packageName) {
-                        customAppName = appName.name
-                    }
-                }
-                newCustomNames.forEach { appName ->
-                    if (appName.packageName == app.packageName) {
-                        customAppName = appName.name
-                    }
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = 15.dp)
-                        .padding(top = 15.dp)
-                        .fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.weight(0.1f)
-                    ) {
-                        if (customAppName == null) {
-                            Text(name, style = MaterialTheme.typography.headlineMedium)
-                        } else {
-                            Text(customAppName!!, style = MaterialTheme.typography.headlineMedium)
-                        }
-                        Text(app.packageName, style = MaterialTheme.typography.bodyMedium)
-                    }
-
-                    Button(
-                        modifier = Modifier.width(100.dp),
-                        onClick = {
-                            AppManager().addExcludedApp(app.packageName, context)
-                            newExcludedApps.add(app.packageName)
-                        }) { Text("Exclude") }
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = 15.dp)
-                        .padding(bottom = 15.dp)
-                        .fillMaxWidth()
-                ) {
-                    TextField(
-                        modifier = Modifier.weight(0.1f),
-                        value = newName,
-                        onValueChange = { newName = it },
-                        label = { Text("Override app name") },
-                        maxLines = 1
-                    )
-
-                    Button(
-                        modifier = Modifier.width(100.dp),
-                        onClick = {
-                            val newApp = AppName(app.packageName, newName)
-                            AppManager().addCustomAppName(newApp, context)
-                            newCustomNames.add(newApp)
-                            newName = ""
-                        }
-                    ) { Text("Save") }
+            customNames.forEach { appName ->
+                if (appName.packageName == app.packageName) {
+                    app.name = appName.name
                 }
             }
+            newCustomNames.forEach { appName ->
+                if (appName.packageName == app.packageName) {
+                    app.name = appName.name
+                }
+            }
+
+            AppCard(context, app, { newCustomNames.add(it) }, { newExcludedApps.add(it) })
         }
 
         item {
@@ -289,6 +265,73 @@ fun RightScreen(modifier: Modifier) {
                 AppManager().removeExcludedApp(packageName, context)
                 excludedApps.remove(packageName)
             }
+        }
+    }
+}
+
+@Composable
+private fun AppCard(
+    context: Context,
+    app: AppName,
+    onChangedName: (newName: AppName) -> Unit,
+    onExcluded: (packageName: String) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .width(600.dp)
+            .padding(vertical = 10.dp)
+    ) {
+        var newName by remember { mutableStateOf("") }
+        var newSavedName by remember { mutableStateOf<String?>(null) }
+
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 15.dp)
+                .padding(top = 15.dp)
+                .fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.weight(0.1f)
+            ) {
+                if (newSavedName != null) {
+                    Text(newSavedName!!, style = MaterialTheme.typography.headlineMedium)
+                } else {
+                    Text(app.name, style = MaterialTheme.typography.headlineMedium)
+                }
+                Text(app.packageName, style = MaterialTheme.typography.bodyMedium)
+            }
+
+            Button(
+                modifier = Modifier.width(100.dp),
+                onClick = {
+                    AppManager().addExcludedApp(app.packageName, context)
+                    onExcluded(app.packageName)
+                }) { Text("Exclude") }
+        }
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 15.dp)
+                .padding(bottom = 15.dp)
+                .fillMaxWidth()
+        ) {
+            TextField(
+                modifier = Modifier.weight(0.1f),
+                value = newName,
+                onValueChange = { newName = it },
+                label = { Text("Override app name") },
+                maxLines = 1
+            )
+
+            Button(
+                modifier = Modifier.width(100.dp),
+                onClick = {
+                    val newApp = AppName(app.packageName, newName)
+                    AppManager().addCustomAppName(newApp, context)
+                    onChangedName(app)
+                    newSavedName = newName
+                    newName = ""
+                }
+            ) { Text("Save") }
         }
     }
 }
