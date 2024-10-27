@@ -3,6 +3,7 @@ package com.sajeg.questrpc.classes
 import android.content.Context
 import android.content.pm.PackageManager
 import android.provider.Settings
+import android.util.Log
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
@@ -39,16 +40,21 @@ object ActivityManager {
                     AppManager().getCustomAppNames(context) { names ->
                         names.forEach { name ->
                             if (name.packageName == packageName) {
+                                Log.d("NowPlayingC", name.name)
                                 createActivity(name.name, context)
                                 return@getCustomAppNames
                             }
                         }
                         AppManager().getStoreNames(context) { savedStoreNames ->
                             savedStoreNames.forEach { name ->
-                                createActivity(name.name, context)
-                                return@getStoreNames
+                                if (name.packageName == packageName) {
+                                    Log.d("NowPlayingS", name.name)
+                                    createActivity(name.name, context)
+                                    return@getStoreNames
+                                }
                             }
                             val appName = getAppNameFromPackageName(packageName.toString(), context)
+                            Log.d("NowPlayingA", appName)
                             createActivity(appName, context)
                         }
                     }

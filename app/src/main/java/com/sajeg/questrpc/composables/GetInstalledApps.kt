@@ -35,7 +35,8 @@ fun getInstalledVrGames(context: Context): List<ApplicationInfo> {
         "com.oculus.environment.prod.winterlodge",
         "com.meta.environment.prod.treehouse",
         "com.meta.environment.prod.nuxd",
-        "com.meta.environment.prod.bluehillgoldmine"
+        "com.meta.environment.prod.bluehillgoldmine",
+        "com.sajeg.questrpc"
     )
 
     val packages = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
@@ -45,14 +46,7 @@ fun getInstalledVrGames(context: Context): List<ApplicationInfo> {
             (packageInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0 &&
             !excludedMetaSystemApps.contains(packageInfo.packageName)
         ) {
-            packageInfo.metaData?.let {
-                it.keySet().forEach {
-                    if (it.contains("com.oculus") || it.contains("pvr.") || it.contains("vr.application.mode")) {
-                        apps.add(packageInfo)
-                        return@let
-                    }
-                }
-            }
+            apps.add(packageInfo)
         }
     }
 
