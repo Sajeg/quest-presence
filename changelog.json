@@ -1,5 +1,10 @@
 [
   {
+    "versionCode": 3,
+    "date": "10/27/24",
+    "changes": "Fixed an issue, where the name of the game was not quite right \n\nAdded an new update notification \n\nNew Category of unknown apps\n\nFixed a few more smaller issues"
+  },
+  {
     "versionCode": 2,
     "date": "10/26/24",
     "changes": "The App is now on SideQuest. I can recommend you installing it through that website, as it is much simpler. I'm also happy if you would leave a review :D.\n\nBut, of course, there are also other improvements:\nNow there should be (nearly) no 2D apps in the installed Apps overview\nThe names of the games are now fetched through the internet, so that you don't need to change many names"

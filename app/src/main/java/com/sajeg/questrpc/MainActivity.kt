@@ -133,7 +133,7 @@ fun LeftScreen(modifier: Modifier) {
     ) {
         Text(
             modifier = Modifier.padding(10.dp),
-            text = "Thank you for using Quest RPC. \nPlease sign in to Discord first \nand then give the app accessibility permission. \n \nNote: on first start the app names can be shown wrong. \nThat'll change with the next app start."
+            text = "Thank you for using Quest RPC. \nPlease sign in to Discord first \nand then give the app accessibility permission. \n \nNote: On first start the app names can be shown wrong. \nThat'll change with the next app start."
         )
         Button({ signIn = true; ActivityManager.stop(context) }) { Text("Sign in to Discord") }
         if (tokenPresent) {
