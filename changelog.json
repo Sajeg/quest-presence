@@ -1,6 +1,6 @@
 [
   {
-    "buildNumber": 2,
+    "versionCode": 2,
     "date": "10/26/24",
     "changes": "The App is now on SideQuest. I can recommend you installing it through that website, as it is much simpler. I'm also happy if you would leave a review :D.\n\nBut, of course, there are also other improvements:\nNow there should be (nearly) no 2D apps in the installed Apps overview\nThe names of the games are now fetched through the internet, so that you don't need to change many names"
   }

@@ -12,8 +12,10 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -52,6 +54,7 @@ import com.sajeg.questrpc.classes.BackgroundUpdater
 import com.sajeg.questrpc.classes.MetaDataDownloader
 import com.sajeg.questrpc.classes.SettingsManager
 import com.sajeg.questrpc.composables.SignInDiscord
+import com.sajeg.questrpc.composables.checkForUpdates
 import com.sajeg.questrpc.composables.getInstalledVrGames
 import com.sajeg.questrpc.ui.theme.QuestRPCTheme
 import java.util.concurrent.TimeUnit
@@ -101,14 +104,16 @@ fun Main(modifier: Modifier) {
 
 @Composable
 fun LeftScreen(modifier: Modifier) {
+    val context = LocalContext.current
     var signIn by remember { mutableStateOf(false) }
     var tokenPresent by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    var changes by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         SettingsManager().readString("token", context) { token ->
             tokenPresent = token.length > 5
         }
+        checkForUpdates { changes = it }
     }
 
     if (signIn) {
@@ -136,6 +141,10 @@ fun LeftScreen(modifier: Modifier) {
             intent.setPackage("com.android.settings");
             startActivity(context, intent, null)
         }) { Text("Give accessibility service permission") }
+        Spacer(Modifier.height(30.dp))
+        if (changes != null) {
+            Text(modifier = Modifier.width(280.dp), text = "Update available. Changes: \n\n $changes")
+        }
     }
 }
 
