@@ -1,4 +1,27 @@
 <resources>
     <string name="app_name">Quest RPC</string>
     <string name="accessibility_service_description">Displays the current active game on Discord</string>
+    <string name="signed_in">"Signed in? "</string>
+    <string name="check">Check</string>
+    <string name="negative">Negative</string>
+    <string name="playing_nothing">Playing nothing</string>
+    <string name="info">Thank you for using Quest RPC. To use the app you need to sign in to Discord and then give the app accessibility permission. This is required for the App to detect what game you are playing. I can see the logo of a game when someone starts it, because of Discords limitations for the presence icon. \nIf you have any questions feel free to ask on SideQuest, GitHub,...</string>
+    <string name="stop">Stop current game</string>
+    <string name="sign_in_discord">Sign in to Discord</string>
+    <string name="go_to_accessibility_settings">Go to accessibility settings</string>
+    <string name="new_update">New Update</string>
+    <string name="open_sidequest">Open SideQuest</string>
+    <string name="open_github">Open GitHub</string>
+    <string name="unknown_apps">"Unknown Apps "</string>
+    <string name="unknown_tipp">You may want to exclude them</string>
+    <string name="recognized_apps">"Recognized Apps "</string>
+    <string name="excluded_apps">"Excluded Apps "</string>
+    <string name="exclude">Exclude</string>
+    <string name="override_app_name">Override app name</string>
+    <string name="save">Save</string>
+    <string name="include">Include</string>
+    <string name="playing">Playing %1$s</string>
+    <string name="information">Information</string>
+    <string name="state">"\nState? "</string>
+    <string name="has_accessibility_permission">\nHas accessibility permission?</string>
 </resources>

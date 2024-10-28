@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Quest RPC</string>
+    <string name="accessibility_service_description">Diese Berechtigung wird benötigt um zu erkennen, welche App geöffnet wurde um dies auf Discord an zu zeigen.</string>
+    <string name="signed_in">Angemeldet?</string>
+    <string name="check">Check</string>
+    <string name="negative">Negativ</string>
+    <string name="state">"\nStatus?"</string>
+    <string name="has_accessibility_permission">\nBedienungshilfen Berechtigung?</string>
+    <string name="playing_nothing">Spielt nichts</string>
+    <string name="info">Vielen Dank, dass du Quest RPC nutzt. Um die App nutzen zu können, musst du dich bei Discord anmelden und der App die Bedienungshilfen berechtigung geben. Dies ist erforderlich, damit die App erkennen kann, welches Spiel du gerade spielst. Ich kann das Logo eines Spiels sehen, wenn jemand es startet, aufgrund von Discords einschränkungen. \nWenn du irgendwelche Fragen hast, kannst du diese gerne auf SideQuest, GitHub,... stellen.</string>
+    <string name="stop">Aktuelles Spiel beenden</string>
+    <string name="sign_in_discord">Mit Discord anmelden</string>
+    <string name="go_to_accessibility_settings">Öffnen Bedinungshilfen Einstellungen</string>
+    <string name="new_update">Neues Update</string>
+    <string name="open_sidequest">Öffne SideQuest</string>
+    <string name="open_github">Öffne Github</string>
+    <string name="unknown_apps">Unbekannte Apps</string>
+    <string name="unknown_tipp">Du möchtest diese vielleicht ausschließen</string>
+    <string name="recognized_apps">Erkannte Apps</string>
+    <string name="excluded_apps">Ausgeschlossene Apps</string>
+    <string name="exclude">Ausschließen</string>
+    <string name="override_app_name">App namen überschreiben</string>
+    <string name="save">Speichern</string>
+    <string name="include">Einschließen</string>
+    <string name="playing">Spiele %1$s</string>
+    <string name="information">Informationen</string>
+</resources>
