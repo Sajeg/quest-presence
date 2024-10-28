@@ -22,6 +22,10 @@ class WebRequest() {
             onResponse(null)
             return
         }
+        if (imageResponse.code == 404) {
+            onResponse(null)
+            return
+        }
         val imageType = imageResponse.body?.contentType()
         val imageData = imageResponse.body?.bytes()
 
@@ -50,10 +54,6 @@ class WebRequest() {
         val firstAttachment = attachmentsArray.getJSONObject(0)
         val url = firstAttachment.getString("url").toString()
         onResponse(url.replace("https://cdn.discordapp.com/", "mp:"))
-        Log.d(
-            "HttpResponse",
-            firstAttachment.getString("url").toString()
-        )
-
+        Log.d("HttpResponse", firstAttachment.getString("url").toString())
     }
 }

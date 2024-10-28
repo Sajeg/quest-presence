@@ -19,7 +19,7 @@ object ActivityManager {
     }
 
     fun stop(context: Context) {
-        SettingsManager().saveString("service", "closed", context)
+        SettingsManager().saveString("game", "null", context)
         if (rpc != null) {
             rpc!!.closeRPC()
             rpc == null
@@ -75,8 +75,9 @@ object ActivityManager {
     }
 
     fun createActivity(name: String, packageName: String, context: Context) {
+        SettingsManager().saveString("game", name, context)
         if (rpc == null) {
-            return
+            start(context)
         }
         WebRequest().getImageUrl(packageName) { image ->
             rpc!!.setActivity(

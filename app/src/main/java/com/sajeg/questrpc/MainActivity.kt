@@ -4,8 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,10 +13,8 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,6 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.datastore.core.DataStore
@@ -55,7 +56,6 @@ import com.sajeg.questrpc.classes.AppName
 import com.sajeg.questrpc.classes.BackgroundUpdater
 import com.sajeg.questrpc.classes.MetaDataDownloader
 import com.sajeg.questrpc.classes.SettingsManager
-import com.sajeg.questrpc.classes.WebRequest
 import com.sajeg.questrpc.composables.SignInDiscord
 import com.sajeg.questrpc.composables.checkForUpdates
 import com.sajeg.questrpc.composables.getInstalledVrGames
@@ -110,6 +110,8 @@ fun LeftScreen(modifier: Modifier) {
     val context = LocalContext.current
     var signIn by remember { mutableStateOf(false) }
     var tokenPresent by remember { mutableStateOf(false) }
+    var serviceEnabled by remember { mutableStateOf(false) }
+    var state by remember { mutableStateOf<String>("Nothing") }
     var changes by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
@@ -117,6 +119,11 @@ fun LeftScreen(modifier: Modifier) {
             tokenPresent = token.length > 5
         }
         checkForUpdates { changes = it }
+        SettingsManager().readString("game", context) { game ->
+            if (game != "null") {
+                state = "Playing $game"
+            }
+        }
     }
 
     if (signIn) {
@@ -130,31 +137,131 @@ fun LeftScreen(modifier: Modifier) {
     }
 
     Column(
-        modifier = modifier.padding(start = 10.dp)
+        modifier = modifier
+            .padding(horizontal = 15.dp, vertical = 15.dp)
+            .width(450.dp)
     ) {
-        Text(
-            modifier = Modifier.padding(10.dp),
-            text = "Thank you for using Quest RPC. \nPlease sign in to Discord first \nand then give the app accessibility permission. \n \nNote: On first start the app names can be shown wrong. \nThat'll change with the next app start."
-        )
-        Button({ signIn = true; ActivityManager.stop(context) }) { Text("Sign in to Discord") }
+        val buttonSize = 220.dp
+        Text("Information", style = MaterialTheme.typography.headlineLarge)
         if (tokenPresent) {
-            Text("You are signed in", color = Color(0xFF4C9306))
-        }
-        Button({
-            SettingsManager().readString("token", context) { token ->
-                if (token != "null") {
-                    val intent = Intent("android.settings.ACCESSIBILITY_SETTINGS");
-                    intent.setPackage("com.android.settings");
-                    startActivity(context, intent, null)
+            val text = buildAnnotatedString {
+                append("Signed in? ")
+                withStyle(style = SpanStyle(color = Color.Green)) {
+                    append("Check")
                 }
+                append("\nHas accessibility permission? ")
+                if (serviceEnabled) {
+                    withStyle(style = SpanStyle(color = Color.Green)) {
+                        append("Check")
+                    }
+                } else {
+                    withStyle(style = SpanStyle(color = Color.Red)) {
+                        append("Negative")
+                    }
+                }
+                append("\nState? ")
+                if (state == "Nothing") {
+                    withStyle(style = SpanStyle(color = Color.Red)) {
+                        append("Playing nothing")
+                    }
+                } else {
+                    withStyle(style = SpanStyle(color = Color.Green)) {
+                        append(state)
+                    }
+                }
+                toAnnotatedString()
             }
-        }) { Text("Give accessibility service permission") }
-        Spacer(Modifier.height(30.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    modifier = Modifier.padding(10.dp),
+                    text = text
+                )
+            }
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    modifier = Modifier.padding(10.dp),
+                    text = "Thank you for using Quest RPC. To use the app you need to sign in to Discord and then give the app accessibility permission. This required for the App to detect what game you are playing. I don't collect any data except because of limitations though discord I can see in a the Discord channel the logo of an game when someone starts it. \n \nNote: On first start the app names can be shown wrong. \nThat'll change with the next app start."
+                )
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 5.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            if (tokenPresent) {
+                Button(
+                    modifier = Modifier.width(buttonSize),
+                    onClick = {
+                        ActivityManager.stop(context)
+                        state = "Nothing"
+                    }
+                ) { Text("Stop current game") }
+            } else {
+                Button(
+                    modifier = Modifier.width(buttonSize),
+                    onClick = { signIn = true; ActivityManager.stop(context) }
+                ) { Text("Sign in to Discord") }
+            }
+            Button(
+                modifier = Modifier.width(buttonSize),
+                onClick = {
+                    SettingsManager().readString("token", context) { token ->
+                        if (token != "null") {
+                            val intent = Intent("android.settings.ACCESSIBILITY_SETTINGS");
+                            intent.setPackage("com.android.settings");
+                            startActivity(context, intent, null)
+                        }
+                    }
+                }
+            ) { Text("Go to accessibility settings") }
+        }
+
         if (changes != null) {
             Text(
-                modifier = Modifier.width(280.dp),
-                text = "Update available. Changes: \n\n $changes"
+                modifier = Modifier.padding(horizontal = 5.dp).padding(top = 20.dp),
+                text = "New Update",
+                style = MaterialTheme.typography.headlineLarge
             )
+            Card (
+                modifier = Modifier.fillMaxWidth()
+            ){
+                Text(
+                    modifier = Modifier.padding(10.dp),
+                    text = changes!!
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 5.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    modifier = Modifier.width(buttonSize),
+                    onClick = {
+                        val browserIntent =
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://sdq.st/a/38617"))
+                        startActivity(context, browserIntent, null)
+                    }
+                ) { Text("Open SideQuest") }
+                Button(
+                    modifier = Modifier.width(buttonSize),
+                    onClick = {
+                        val browserIntent = Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://github.com/Sajeg/quest-rpc")
+                        )
+                        startActivity(context, browserIntent, null)
+                    }
+                ) { Text("Open GitHub") }
+            }
         }
     }
 }
@@ -196,7 +303,6 @@ fun RightScreen(modifier: Modifier) {
                     AppManager().addStoreNames(newNames, context)
                 }
             } else {
-                Log.d("Recomposing", "Done")
                 storeNames = savedStoreNames.toMutableStateList()
                 storeNames.sortedBy { it.name }
                 storeNames.forEach { storePackages.add(it.packageName) }
@@ -210,7 +316,7 @@ fun RightScreen(modifier: Modifier) {
     ) {
         item {
             Column {
-                Text("Unknown Apps: ", style = MaterialTheme.typography.headlineLarge)
+                Text("Unknown Apps ", style = MaterialTheme.typography.headlineLarge)
                 Text("You may want to exclude them", style = MaterialTheme.typography.bodyMedium)
             }
         }
@@ -242,7 +348,7 @@ fun RightScreen(modifier: Modifier) {
             AppCard(context, app, { newCustomNames.add(it) }, { newExcludedApps.add(it) })
         }
         item {
-            Text("Recognized Apps: ", style = MaterialTheme.typography.headlineLarge)
+            Text("Recognized Apps ", style = MaterialTheme.typography.headlineLarge)
         }
         items(storeNames, { it.packageName }) { app ->
             if (excludedApps.contains(app.packageName) || newExcludedApps.contains(app.packageName)) {
@@ -263,7 +369,7 @@ fun RightScreen(modifier: Modifier) {
         }
 
         item {
-            Text("Excluded Apps: ", style = MaterialTheme.typography.headlineLarge)
+            Text("Excluded Apps ", style = MaterialTheme.typography.headlineLarge)
         }
         items(newExcludedApps, { it }) { packageName ->
             ExcludedAppsCard(packageName, context, modifier) {
