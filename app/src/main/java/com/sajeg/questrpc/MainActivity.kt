@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -121,7 +122,7 @@ fun LeftScreen(modifier: Modifier) {
         checkForUpdates { changes = it }
         SettingsManager().readString("game", context) { game ->
             if (game != "null") {
-                state = "Playing $game"
+                state = context.getString(R.string.playing, game)
             }
         }
     }
@@ -142,27 +143,27 @@ fun LeftScreen(modifier: Modifier) {
             .width(450.dp)
     ) {
         val buttonSize = 220.dp
-        Text("Information", style = MaterialTheme.typography.headlineLarge)
+        Text(stringResource(R.string.information), style = MaterialTheme.typography.headlineLarge)
         if (tokenPresent) {
             val text = buildAnnotatedString {
-                append("Signed in? ")
+                append(stringResource(R.string.signed_in))
                 withStyle(style = SpanStyle(color = Color.Green)) {
-                    append("Check")
+                    append(stringResource(R.string.check))
                 }
-                append("\nHas accessibility permission? ")
+                append(stringResource(R.string.has_accessibility_permission))
                 if (serviceEnabled) {
                     withStyle(style = SpanStyle(color = Color.Green)) {
-                        append("Check")
+                        append(stringResource(R.string.check))
                     }
                 } else {
                     withStyle(style = SpanStyle(color = Color.Red)) {
-                        append("Negative")
+                        append(stringResource(R.string.negative))
                     }
                 }
-                append("\nState? ")
+                append(stringResource(R.string.state))
                 if (state == "Nothing") {
                     withStyle(style = SpanStyle(color = Color.Red)) {
-                        append("Playing nothing")
+                        append(stringResource(R.string.playing_nothing))
                     }
                 } else {
                     withStyle(style = SpanStyle(color = Color.Green)) {
@@ -185,7 +186,7 @@ fun LeftScreen(modifier: Modifier) {
             ) {
                 Text(
                     modifier = Modifier.padding(10.dp),
-                    text = "Thank you for using Quest RPC. To use the app you need to sign in to Discord and then give the app accessibility permission. This required for the App to detect what game you are playing. I don't collect any data except because of limitations though discord I can see in a the Discord channel the logo of an game when someone starts it. \n \nNote: On first start the app names can be shown wrong. \nThat'll change with the next app start."
+                    text = stringResource(R.string.info)
                 )
             }
         }
@@ -202,12 +203,12 @@ fun LeftScreen(modifier: Modifier) {
                         ActivityManager.stop(context)
                         state = "Nothing"
                     }
-                ) { Text("Stop current game") }
+                ) { Text(stringResource(R.string.stop)) }
             } else {
                 Button(
                     modifier = Modifier.width(buttonSize),
                     onClick = { signIn = true; ActivityManager.stop(context) }
-                ) { Text("Sign in to Discord") }
+                ) { Text(stringResource(R.string.sign_in_discord)) }
             }
             Button(
                 modifier = Modifier.width(buttonSize),
@@ -220,13 +221,15 @@ fun LeftScreen(modifier: Modifier) {
                         }
                     }
                 }
-            ) { Text("Go to accessibility settings") }
+            ) { Text(stringResource(R.string.go_to_accessibility_settings)) }
         }
 
         if (changes != null) {
             Text(
-                modifier = Modifier.padding(horizontal = 5.dp).padding(top = 20.dp),
-                text = "New Update",
+                modifier = Modifier
+                    .padding(horizontal = 5.dp)
+                    .padding(top = 20.dp),
+                text = stringResource(R.string.new_update),
                 style = MaterialTheme.typography.headlineLarge
             )
             Card (
@@ -250,7 +253,7 @@ fun LeftScreen(modifier: Modifier) {
                             Intent(Intent.ACTION_VIEW, Uri.parse("https://sdq.st/a/38617"))
                         startActivity(context, browserIntent, null)
                     }
-                ) { Text("Open SideQuest") }
+                ) { Text(stringResource(R.string.open_sidequest)) }
                 Button(
                     modifier = Modifier.width(buttonSize),
                     onClick = {
@@ -260,7 +263,7 @@ fun LeftScreen(modifier: Modifier) {
                         )
                         startActivity(context, browserIntent, null)
                     }
-                ) { Text("Open GitHub") }
+                ) { Text(stringResource(R.string.open_github)) }
             }
         }
     }
@@ -316,8 +319,8 @@ fun RightScreen(modifier: Modifier) {
     ) {
         item {
             Column {
-                Text("Unknown Apps ", style = MaterialTheme.typography.headlineLarge)
-                Text("You may want to exclude them", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.unknown_apps), style = MaterialTheme.typography.headlineLarge)
+                Text(stringResource(R.string.unknown_tipp), style = MaterialTheme.typography.bodyMedium)
             }
         }
         items(apps, { it }) { appInfo ->
@@ -348,7 +351,7 @@ fun RightScreen(modifier: Modifier) {
             AppCard(context, app, { newCustomNames.add(it) }, { newExcludedApps.add(it) })
         }
         item {
-            Text("Recognized Apps ", style = MaterialTheme.typography.headlineLarge)
+            Text(stringResource(R.string.recognized_apps), style = MaterialTheme.typography.headlineLarge)
         }
         items(storeNames, { it.packageName }) { app ->
             if (excludedApps.contains(app.packageName) || newExcludedApps.contains(app.packageName)) {
@@ -369,7 +372,7 @@ fun RightScreen(modifier: Modifier) {
         }
 
         item {
-            Text("Excluded Apps ", style = MaterialTheme.typography.headlineLarge)
+            Text(stringResource(R.string.excluded_apps), style = MaterialTheme.typography.headlineLarge)
         }
         items(newExcludedApps, { it }) { packageName ->
             ExcludedAppsCard(packageName, context, modifier) {
@@ -423,7 +426,7 @@ private fun AppCard(
                 onClick = {
                     AppManager().addExcludedApp(app.packageName, context)
                     onExcluded(app.packageName)
-                }) { Text("Exclude") }
+                }) { Text(stringResource(R.string.exclude)) }
         }
         Row(
             modifier = Modifier
@@ -435,7 +438,7 @@ private fun AppCard(
                 modifier = Modifier.weight(0.1f),
                 value = newName,
                 onValueChange = { newName = it },
-                label = { Text("Override app name") },
+                label = { Text(stringResource(R.string.override_app_name)) },
                 maxLines = 1
             )
 
@@ -448,7 +451,7 @@ private fun AppCard(
                     newSavedName = newName
                     newName = ""
                 }
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.save)) }
         }
     }
 }
@@ -485,7 +488,7 @@ private fun ExcludedAppsCard(
                 modifier = Modifier.width(100.dp),
                 onClick = { onIncludePressed(packageName) }
             ) {
-                Text("Include")
+                Text(stringResource(R.string.include))
             }
         }
     }
