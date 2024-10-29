@@ -11,6 +11,9 @@ import com.sajeg.questrpc.composables.getInstalledVrGames
 
 object ActivityManager {
     var rpc: KizzyRPC? = null
+    var lastApp: String = ""
+    var startTime: Long = System.currentTimeMillis()
+    var pauseTime: Long? = null
 
     fun start(context: Context) {
         SettingsManager().readString("token", context) { token ->
@@ -19,6 +22,7 @@ object ActivityManager {
     }
 
     fun stop(context: Context) {
+        pauseTime = System.currentTimeMillis()
         SettingsManager().saveString("game", "null", context)
         if (rpc != null) {
             rpc!!.closeRPC()
@@ -26,9 +30,24 @@ object ActivityManager {
         }
     }
 
+    fun resume() {
+        if (pauseTime == null) {
+            return
+        }
+        var timeStandBy = System.currentTimeMillis() - pauseTime!!
+        if (timeStandBy > 3600000) {
+            startTime = System.currentTimeMillis()
+        } else {
+            startTime = startTime + timeStandBy
+        }
+    }
+
     fun appChanged(packageName: String, context: Context) {
         if (rpc == null) {
             return
+        }
+        if (lastApp != packageName) {
+            startTime = System.currentTimeMillis()
         }
         val apps = getInstalledVrGames(context)
         apps.forEach { vrGame ->
@@ -99,7 +118,7 @@ object ActivityManager {
                     )
                 ),
                 status = "online",
-                since = System.currentTimeMillis()
+                since = startTime
             )
         }
     }
