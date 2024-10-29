@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Quest RPC</string>
+    <string name="app_name">Quest Presence</string>
     <string name="accessibility_service_description">Diese Berechtigung wird benötigt um zu erkennen, welche App geöffnet wurde um dies auf Discord an zu zeigen.</string>
     <string name="signed_in">Angemeldet? </string>
     <string name="check">Check</string>

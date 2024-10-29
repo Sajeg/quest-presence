@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Quest RPC</string>
+    <string name="app_name">Quest Presence</string>
     <string name="accessibility_service_description">Displays the current active game on Discord</string>
     <string name="signed_in">"Signed in? "</string>
     <string name="check">Check</string>
