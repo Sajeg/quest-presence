@@ -7,6 +7,7 @@ import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -133,7 +134,8 @@ fun LeftScreen(modifier: Modifier) {
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
             )
         serviceEnabled = prefString.contains(
-            "com.sajeg.questrpc.classes.AccessibilityService")
+            "com.sajeg.questrpc.classes.AccessibilityService"
+        )
     }
 
     if (signIn) {
@@ -288,6 +290,7 @@ fun RightScreen(modifier: Modifier) {
     var apps = remember { mutableStateListOf<ApplicationInfo>() }
     var storeNames = remember { mutableStateListOf<AppName>() }
     var storePackages = remember { mutableStateListOf<String>() }
+    var refreshNames by remember { mutableStateOf(false) }
     val packageManager = context.packageManager
 
     if (excludedApps.isEmpty()) {
@@ -300,6 +303,9 @@ fun RightScreen(modifier: Modifier) {
             customNames = it.toMutableList()
         }
     }
+    if (refreshNames) {
+        refreshNames = false
+    }
     if (apps.isEmpty()) {
         apps = getInstalledVrGames(context).toMutableStateList()
         AppManager().getStoreNames(context) { savedStoreNames ->
@@ -309,15 +315,17 @@ fun RightScreen(modifier: Modifier) {
                     packageNames.add(app.packageName)
                 }
                 MetaDataDownloader().getAppsName(packageNames) { newNames ->
+                    AppManager().addStoreNames(newNames, context)
                     storeNames = newNames.toMutableStateList()
                     storeNames.sortedBy { it.name }
                     storeNames.forEach { storePackages.add(it.packageName) }
-                    AppManager().addStoreNames(newNames, context)
+                    refreshNames = true
                 }
             } else {
                 storeNames = savedStoreNames.toMutableStateList()
                 storeNames.sortedBy { it.name }
                 storeNames.forEach { storePackages.add(it.packageName) }
+                refreshNames = true
             }
         }
     }
