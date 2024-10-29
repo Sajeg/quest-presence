@@ -2,6 +2,7 @@ package com.sajeg.questrpc.classes
 
 import android.util.Log
 import com.sajeg.questrpc.BuildConfig
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -54,6 +55,5 @@ class WebRequest() {
         val firstAttachment = attachmentsArray.getJSONObject(0)
         val url = firstAttachment.getString("url").toString()
         onResponse(url.replace("https://cdn.discordapp.com/", "mp:"))
-        Log.d("HttpResponse", firstAttachment.getString("url").toString())
     }
 }

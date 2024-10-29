@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -106,6 +107,7 @@ fun Main(modifier: Modifier) {
     }
 }
 
+@SuppressLint("ServiceCast")
 @Composable
 fun LeftScreen(modifier: Modifier) {
     val context = LocalContext.current
@@ -125,6 +127,13 @@ fun LeftScreen(modifier: Modifier) {
                 state = context.getString(R.string.playing, game)
             }
         }
+        val prefString =
+            Settings.Secure.getString(
+                context.contentResolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            )
+        serviceEnabled = prefString.contains(
+            "com.sajeg.questrpc.classes.AccessibilityService")
     }
 
     if (signIn) {
@@ -232,9 +241,9 @@ fun LeftScreen(modifier: Modifier) {
                 text = stringResource(R.string.new_update),
                 style = MaterialTheme.typography.headlineLarge
             )
-            Card (
+            Card(
                 modifier = Modifier.fillMaxWidth()
-            ){
+            ) {
                 Text(
                     modifier = Modifier.padding(10.dp),
                     text = changes!!
@@ -319,8 +328,14 @@ fun RightScreen(modifier: Modifier) {
     ) {
         item {
             Column {
-                Text(stringResource(R.string.unknown_apps), style = MaterialTheme.typography.headlineLarge)
-                Text(stringResource(R.string.unknown_tipp), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    stringResource(R.string.unknown_apps),
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                Text(
+                    stringResource(R.string.unknown_tipp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
         items(apps, { it }) { appInfo ->
@@ -351,7 +366,10 @@ fun RightScreen(modifier: Modifier) {
             AppCard(context, app, { newCustomNames.add(it) }, { newExcludedApps.add(it) })
         }
         item {
-            Text(stringResource(R.string.recognized_apps), style = MaterialTheme.typography.headlineLarge)
+            Text(
+                stringResource(R.string.recognized_apps),
+                style = MaterialTheme.typography.headlineLarge
+            )
         }
         items(storeNames, { it.packageName }) { app ->
             if (excludedApps.contains(app.packageName) || newExcludedApps.contains(app.packageName)) {
@@ -372,7 +390,10 @@ fun RightScreen(modifier: Modifier) {
         }
 
         item {
-            Text(stringResource(R.string.excluded_apps), style = MaterialTheme.typography.headlineLarge)
+            Text(
+                stringResource(R.string.excluded_apps),
+                style = MaterialTheme.typography.headlineLarge
+            )
         }
         items(newExcludedApps, { it }) { packageName ->
             ExcludedAppsCard(packageName, context, modifier) {

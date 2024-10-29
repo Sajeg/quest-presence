@@ -23,5 +23,5 @@
     <string name="playing">Playing %1$s</string>
     <string name="information">Information</string>
     <string name="state">"\nState? "</string>
-    <string name="has_accessibility_permission">\nHas accessibility permission?</string>
+    <string name="has_accessibility_permission">"\nHas accessibility permission? "</string>
 </resources>

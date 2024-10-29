@@ -8,6 +8,7 @@ class ScreenStateReceiver : BroadcastReceiver() {
     override fun onReceive(p0: Context?, p1: Intent?) {
         when (p1?.action) {
             Intent.ACTION_SCREEN_ON -> {
+                ActivityManager.resume()
                 ActivityManager.start(p0!!)
             }
 

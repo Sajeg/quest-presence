@@ -26,10 +26,11 @@ class AccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(p0: AccessibilityEvent?) {
-        if (p0 != null && p0.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+        if (p0 == null) {
+            return
+        }
+        if (p0.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             val packageName = p0.packageName?.toString()
-            Log.d("ActivityManagerPackage", packageName.toString())
-            Log.d("ActivityManagerClass", p0.className.toString())
             if (packageName == "com.oculus.shellenv" && p0.className.toString() == "com.oculus.shellenv.ShellEnvActivity") {
                 ActivityManager.stop(this)
             }
