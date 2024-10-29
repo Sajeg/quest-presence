@@ -270,7 +270,7 @@ fun LeftScreen(modifier: Modifier) {
                     onClick = {
                         val browserIntent = Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse("https://github.com/Sajeg/quest-rpc")
+                            Uri.parse("https://github.com/Sajeg/quest-presence")
                         )
                         startActivity(context, browserIntent, null)
                     }
