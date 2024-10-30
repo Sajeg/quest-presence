@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Quest Presence</string>
-    <string name="accessibility_service_description">Diese Berechtigung wird benötigt um zu erkennen, welche App geöffnet wurde um dies auf Discord an zu zeigen.</string>
+    <string name="accessibility_service_description">Diese Berechtigung wird benötigt um zu erkennen, welche App geöffnet wurde um diese auf Discord an zu zeigen.</string>
     <string name="signed_in">Angemeldet? </string>
-    <string name="check">Check</string>
-    <string name="negative">Negativ</string>
+    <string name="check"> Check</string>
+    <string name="negative"> Negativ</string>
     <string name="state">"\nStatus? "</string>
     <string name="has_accessibility_permission">\nBedienungshilfen Berechtigung? </string>
     <string name="playing_nothing">Spielt nichts</string>

@@ -7,7 +7,6 @@ import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -230,11 +229,9 @@ fun LeftScreen(modifier: Modifier) {
                 modifier = Modifier.width(buttonSize),
                 onClick = {
                     SettingsManager().readString("token", context) { token ->
-                        if (token != "null") {
-                            val intent = Intent("android.settings.ACCESSIBILITY_SETTINGS");
-                            intent.setPackage("com.android.settings");
-                            startActivity(context, intent, null)
-                        }
+                        val intent = Intent("android.settings.ACCESSIBILITY_SETTINGS");
+                        intent.setPackage("com.android.settings");
+                        startActivity(context, intent, null)
                     }
                 }
             ) { Text(stringResource(R.string.go_to_accessibility_settings)) }
@@ -307,9 +304,6 @@ fun RightScreen(modifier: Modifier) {
         AppManager().getCustomAppNames(context) {
             customNames = it.toMutableList()
         }
-    }
-    if (refreshNames) {
-        refreshNames = false
     }
     if (apps.isEmpty()) {
         apps = getInstalledVrGames(context).toMutableStateList()
