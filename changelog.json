@@ -1,10 +1,5 @@
 [
   {
-    "versionCode": 5,
-    "date": "10/30/24",
-    "changes": "v2.1 fixes bugs that were introduced in v2.0 together with icons of the games as rich presences and a bunch of other features and improvements."
-  },
-  {
     "versionCode": 4,
     "date": "10/29/24",
     "changes": "Quest RPC is now Quest Presence. That and much more like app icons in your presence or an improved home screen layout with optimizations under the hood for improving app stop detection can you find in version 2.0. Out now."
