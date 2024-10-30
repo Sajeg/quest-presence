@@ -133,9 +133,14 @@ fun LeftScreen(modifier: Modifier) {
                 context.contentResolver,
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
             )
-        serviceEnabled = prefString.contains(
-            "com.sajeg.questrpc.classes.AccessibilityService"
-        )
+        serviceEnabled = try {
+            prefString.contains(
+                "com.sajeg.questrpc.classes.AccessibilityService"
+            )
+        } catch (e: Exception) {
+            false
+        }
+
     }
 
     if (signIn) {
