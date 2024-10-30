@@ -74,21 +74,6 @@ class MainActivity : ComponentActivity() {
             QuestRPCTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Main(Modifier.padding(innerPadding))
-                    val uploadWorkRequest =
-                        PeriodicWorkRequestBuilder<BackgroundUpdater>(6, TimeUnit.HOURS)
-                            .setConstraints(
-                                Constraints.Builder()
-                                    .setRequiredNetworkType(NetworkType.UNMETERED)
-                                    .build()
-                            )
-                            .build()
-                    WorkManager
-                        .getInstance(this)
-                        .enqueueUniquePeriodicWork(
-                            "updateNames",
-                            ExistingPeriodicWorkPolicy.KEEP,
-                            uploadWorkRequest
-                        )
                 }
             }
         }
@@ -313,12 +298,28 @@ fun RightScreen(modifier: Modifier) {
                 apps.forEach { app ->
                     packageNames.add(app.packageName)
                 }
+                val updateWorkRequest =
+                    PeriodicWorkRequestBuilder<BackgroundUpdater>(6, TimeUnit.HOURS)
+                        .setConstraints(
+                            Constraints.Builder()
+                                .setRequiredNetworkType(NetworkType.UNMETERED)
+                                .build()
+                        )
+                        .build()
+                WorkManager
+                    .getInstance(context)
+                    .enqueueUniquePeriodicWork(
+                        "updateNames",
+                        ExistingPeriodicWorkPolicy.KEEP,
+                        updateWorkRequest
+                    )
                 MetaDataDownloader().getAppsName(packageNames) { newNames ->
                     AppManager().addStoreNames(newNames, context)
                     storeNames = newNames.toMutableStateList()
                     storeNames.sortedBy { it.name }
                     storeNames.forEach { storePackages.add(it.packageName) }
-                    refreshNames = true
+                    val intent = Intent(context, MainActivity::class.java)
+                    startActivity(context, intent, null)
                 }
             } else {
                 storeNames = savedStoreNames.toMutableStateList()
