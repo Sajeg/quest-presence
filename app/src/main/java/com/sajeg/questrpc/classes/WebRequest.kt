@@ -2,7 +2,6 @@ package com.sajeg.questrpc.classes
 
 import android.util.Log
 import com.sajeg.questrpc.BuildConfig
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -11,7 +10,14 @@ import okhttp3.Response
 import org.json.JSONObject
 
 class WebRequest() {
+    var lastPackage = ""
+    var cachedURL = ""
+
     fun getImageUrl(packageName: String, onResponse: (url: String?) -> Unit) {
+        if (packageName == lastPackage) {
+            onResponse(cachedURL)
+            return
+        }
         val client = OkHttpClient()
         val imageRequest = Request.Builder()
             .url("https://files.cocaine.trade/LauncherIcons/oculus_icon/$packageName.jpg")
@@ -54,6 +60,9 @@ class WebRequest() {
         val attachmentsArray = json.getJSONArray("attachments")
         val firstAttachment = attachmentsArray.getJSONObject(0)
         val url = firstAttachment.getString("url").toString()
-        onResponse(url.replace("https://cdn.discordapp.com/", "mp:"))
+            .replace("https://cdn.discordapp.com/", "mp:")
+        lastPackage = packageName
+        cachedURL = url
+        onResponse(url)
     }
 }
