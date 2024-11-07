@@ -7,12 +7,13 @@ plugins {
 
 android {
     namespace = "com.sajeg.questrpc"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.sajeg.questrpc"
         minSdk = 31
-        targetSdk = 34
+        //noinspection EditedTargetSdkVersion
+        targetSdk = 35
         versionCode = 5
         versionName = "2.1"
 

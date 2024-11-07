@@ -31,7 +31,7 @@ class AccessibilityService : AccessibilityService() {
         }
         if (p0.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             val packageName = p0.packageName?.toString()
-            if (packageName == "com.oculus.shellenv" && p0.className.toString() == "com.oculus.shellenv.ShellEnvActivity") {
+            if (packageName == "com.oculus.shellenv") {
                 ActivityManager.stop(this)
             }
             ActivityManager.appChanged(packageName.toString(), this)

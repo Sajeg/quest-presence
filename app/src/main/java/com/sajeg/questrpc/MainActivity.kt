@@ -7,6 +7,7 @@ import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -323,7 +324,7 @@ fun RightScreen(modifier: Modifier) {
                 }
             } else {
                 storeNames = savedStoreNames.toMutableStateList()
-                storeNames.sortedBy { it.name }
+                storeNames.sortBy { it.name }
                 storeNames.forEach { storePackages.add(it.packageName) }
                 refreshNames = true
             }
