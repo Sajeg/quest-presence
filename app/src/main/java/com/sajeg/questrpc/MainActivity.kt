@@ -7,11 +7,9 @@ import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -333,7 +331,7 @@ fun RightScreen(modifier: Modifier) {
     LazyColumn(
         modifier = modifier
             .padding(15.dp)
-            .animateContentSize()
+//            .animateContentSize()
     ) {
         item {
             Column {
@@ -347,7 +345,7 @@ fun RightScreen(modifier: Modifier) {
                 )
             }
         }
-        items(apps, { it }) { appInfo ->
+        items(apps) { appInfo ->
             if (excludedApps.contains(appInfo.packageName) ||
                 newExcludedApps.contains(appInfo.packageName) ||
                 storePackages.contains(appInfo.packageName)
@@ -380,7 +378,7 @@ fun RightScreen(modifier: Modifier) {
                 style = MaterialTheme.typography.headlineLarge
             )
         }
-        items(storeNames, { it.packageName }) { app ->
+        items(storeNames) { app ->
             if (excludedApps.contains(app.packageName) || newExcludedApps.contains(app.packageName)) {
                 return@items
             }
@@ -404,13 +402,13 @@ fun RightScreen(modifier: Modifier) {
                 style = MaterialTheme.typography.headlineLarge
             )
         }
-        items(newExcludedApps, { it }) { packageName ->
+        items(newExcludedApps) { packageName ->
             ExcludedAppsCard(packageName, context, modifier) {
                 AppManager().removeExcludedApp(packageName, context)
                 newExcludedApps.remove(packageName)
             }
         }
-        items(excludedApps, { it }) { packageName ->
+        items(excludedApps) { packageName ->
             ExcludedAppsCard(packageName, context, modifier) {
                 AppManager().removeExcludedApp(packageName, context)
                 excludedApps.remove(packageName)
