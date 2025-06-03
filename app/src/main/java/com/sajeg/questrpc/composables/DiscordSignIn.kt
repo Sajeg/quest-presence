@@ -16,7 +16,7 @@ import kotlin.text.startsWith
 fun SignInDiscord(onDataRetrieved: (token: String?) -> Unit) {
     val url = "https://discord.com/login"
     val jsCode =
-        "(webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken()"
+        "localStorage.getItem('token')"
     AndroidView(factory = {
         WebView(it).apply {
             settings.apply {
@@ -29,26 +29,25 @@ fun SignInDiscord(onDataRetrieved: (token: String?) -> Unit) {
             )
 
             webViewClient = object : WebViewClient() {
-                @Deprecated("Deprecated in Java")
-                override fun shouldOverrideUrlLoading(
-                    webView: WebView,
-                    url: String,
-                ): Boolean {
-                    stopLoading()
-                    if (url.endsWith("/app")) {
-                        evaluateJavascript(jsCode) { value ->
-                            if (value != null && !value.startsWith("Error")) {
-                                val token =
-                                    value.replace("\"", "")
-                                onDataRetrieved(token)
-                                Log.d("FetchedToken", "Success")
-                            } else {
-                                Log.d("FetchedToken", "Failed to fetch token: $value")
+
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    if (url != null) {
+                        if (url.endsWith("/app")) {
+                            evaluateJavascript(jsCode) { value ->
+                                Log.d("FetchedTokenError", value)
+                                if (value != null && !value.startsWith("Error")) {
+                                    val token =
+                                        value.substring(3, value.length - 3)
+                                    onDataRetrieved(token)
+                                    visibility = View.GONE
+                                    Log.d("FetchedToken", token)
+                                } else {
+                                    Log.d("FetchedToken", "Failed to fetch token: $value")
+                                }
                             }
                         }
                     }
-                    visibility = View.GONE
-                    return false
                 }
             }
 
