@@ -41,9 +41,8 @@ class WebRequest() {
             addFormDataPart("files[0]", "icon.jpg", imageData!!.toRequestBody(imageType))
         }.build()
         val request = Request.Builder().apply {
-            url("https://discord.com/api/v9/channels/1300027383427891271/messages")
+            url("https://canary.discord.com/api/webhooks/1379442109240574063/${BuildConfig.webhook}")
             post(formBody)
-            addHeader("authorization", "Bot ${BuildConfig.botToken}")
         }.build()
         val response = client.newCall(request).execute()
         val body = response.body!!.string()
