@@ -42,7 +42,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -58,7 +57,6 @@ import com.sajeg.questrpc.classes.BackgroundUpdater
 import com.sajeg.questrpc.classes.MetaDataDownloader
 import com.sajeg.questrpc.classes.SettingsManager
 import com.sajeg.questrpc.composables.SignInDiscord
-import com.sajeg.questrpc.composables.checkForUpdates
 import com.sajeg.questrpc.composables.getInstalledVrGames
 import com.sajeg.questrpc.ui.theme.QuestRPCTheme
 import java.util.concurrent.TimeUnit
@@ -99,13 +97,11 @@ fun LeftScreen(modifier: Modifier) {
     var tokenPresent by remember { mutableStateOf(false) }
     var serviceEnabled by remember { mutableStateOf(false) }
     var state by remember { mutableStateOf<String>("Nothing") }
-    var changes by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         SettingsManager().readString("token", context) { token ->
             tokenPresent = token.length > 5
         }
-        checkForUpdates { changes = it }
         SettingsManager().readString("game", context) { game ->
             if (game != "null") {
                 state = context.getString(R.string.playing, game)
@@ -215,54 +211,33 @@ fun LeftScreen(modifier: Modifier) {
                     SettingsManager().readString("token", context) { token ->
                         val intent = Intent("android.settings.ACCESSIBILITY_SETTINGS");
                         intent.setPackage("com.android.settings");
-                        startActivity(context, intent, null)
+                        context.startActivity(intent, null)
                     }
                 }
             ) { Text(stringResource(R.string.go_to_accessibility_settings)) }
         }
-
-        if (changes != null) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp)
+        ) {
             Text(
-                modifier = Modifier
-                    .padding(horizontal = 5.dp)
-                    .padding(top = 20.dp),
-                text = stringResource(R.string.new_update),
-                style = MaterialTheme.typography.headlineLarge
+                modifier = Modifier.padding(10.dp),
+                text = stringResource(R.string.info_restricted_settings)
             )
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    modifier = Modifier.padding(10.dp),
-                    text = changes!!
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 5.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    modifier = Modifier.width(buttonSize),
-                    onClick = {
-                        val browserIntent =
-                            Intent(Intent.ACTION_VIEW, Uri.parse("https://sdq.st/a/38617"))
-                        startActivity(context, browserIntent, null)
-                    }
-                ) { Text(stringResource(R.string.open_sidequest)) }
-                Button(
-                    modifier = Modifier.width(buttonSize),
-                    onClick = {
-                        val browserIntent = Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://github.com/Sajeg/quest-presence")
-                        )
-                        startActivity(context, browserIntent, null)
-                    }
-                ) { Text(stringResource(R.string.open_github)) }
-            }
         }
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                val intent = Intent()
+                val settingsPackageName = "com.android.settings"
+                val appDetailsClassName = "com.android.settings.applications.InstalledAppDetails"
+                intent.setClassName(settingsPackageName, appDetailsClassName)
+                val uri = Uri.fromParts("package", context.packageName, null)
+                intent.data = uri
+                context.startActivity(intent, null)
+            }
+        ) { Text(stringResource(R.string.open_app_info)) }
     }
 }
 
@@ -318,7 +293,7 @@ fun RightScreen(modifier: Modifier) {
                     storeNames.sortedBy { it.name }
                     storeNames.forEach { storePackages.add(it.packageName) }
                     val intent = Intent(context, MainActivity::class.java)
-                    startActivity(context, intent, null)
+                    context.startActivity(intent, null)
                 }
             } else {
                 storeNames = savedStoreNames.toMutableStateList()

@@ -8,7 +8,7 @@
     <string name="state">"\nStatus? "</string>
     <string name="has_accessibility_permission">\nBedienungshilfen Berechtigung? </string>
     <string name="playing_nothing">Spielt nichts</string>
-    <string name="info">Vielen Dank, dass du Quest RPC nutzt. Um die App nutzen zu können, musst du dich bei Discord anmelden und der App die Bedienungshilfen berechtigung geben. Dies ist erforderlich, damit die App erkennen kann, welches Spiel du gerade spielst. Ich kann das Logo eines Spiels sehen, wenn jemand es startet, aufgrund von Discords einschränkungen. \nWenn du irgendwelche Fragen hast, kannst du diese gerne auf SideQuest, GitHub,... stellen.</string>
+    <string name="info">Vielen Dank, dass du Quest Presence nutzt. Um die App nutzen zu können, musst du dich bei Discord anmelden und der App die Bedienungshilfen berechtigung geben. Dies ist erforderlich, damit die App erkennen kann, welches Spiel du gerade spielst. Ich kann das Logo eines Spiels sehen, wenn jemand es startet, aufgrund von Discords einschränkungen.  Wenn du irgendwelche Fragen hast, kannst du diese gerne auf SideQuest, GitHub,... stellen.</string>
     <string name="stop">Aktuelles Spiel beenden</string>
     <string name="sign_in_discord">Mit Discord anmelden</string>
     <string name="go_to_accessibility_settings">Öffnen Bedinungshilfen Einstellungen</string>
@@ -25,4 +25,6 @@
     <string name="include">Einschließen</string>
     <string name="playing">Spiele %1$s</string>
     <string name="information">Informationen</string>
+    <string name="info_restricted_settings">Falls du einen Fehler siehst, der dich hindert die Bedinungshilfen einzuschalten, dann nutze den Button unter dieser Nachricht um in die App Übersicht zu navigieren und dann tippe oben rechts auf die drei Punkte und wähle beschränkte Einstellungen zulassen.</string>
+    <string name="open_app_info">Öffne App Info</string>
 </resources>

@@ -5,7 +5,7 @@
     <string name="check">Check</string>
     <string name="negative">Negative</string>
     <string name="playing_nothing">Playing nothing</string>
-    <string name="info">Thank you for using Quest RPC. To use the app you need to sign in to Discord and then give the app accessibility permission. This is required for the App to detect what game you are playing. I can see the logo of a game when someone starts it, because of Discords limitations for the presence icon. \nIf you have any questions feel free to ask on SideQuest, GitHub,...</string>
+    <string name="info">Thank you for using Quest Presence. To use the app you need to sign in to Discord and then give the app accessibility permission. This is required for the App to detect what game you are playing. I can see the logo of a game when someone starts it, because of Discords limitations for the presence icon.  If you have any questions feel free to ask on SideQuest, GitHub, Discord, Email,...</string>
     <string name="stop">Stop current game</string>
     <string name="sign_in_discord">Sign in to Discord</string>
     <string name="go_to_accessibility_settings">Go to accessibility settings</string>
@@ -24,4 +24,6 @@
     <string name="information">Information</string>
     <string name="state">"\nState? "</string>
     <string name="has_accessibility_permission">"\nHas accessibility permission? "</string>
+    <string name="info_restricted_settings">If you see an error that says restricted setting, use the button below to navigate to the App info and then in the upper right corner, tap on the three dots icon and select Allow restricted settings.</string>
+    <string name="open_app_info">Open App Info</string>
 </resources>
