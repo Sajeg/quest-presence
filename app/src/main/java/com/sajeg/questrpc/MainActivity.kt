@@ -218,28 +218,31 @@ fun LeftScreen(modifier: Modifier) {
                 }
             ) { Text(stringResource(R.string.go_to_accessibility_settings)) }
         }
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp)
-        ) {
-            Text(
-                modifier = Modifier.padding(10.dp),
-                text = stringResource(R.string.info_restricted_settings)
-            )
-        }
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                val intent = Intent()
-                val settingsPackageName = "com.android.settings"
-                val appDetailsClassName = "com.android.settings.applications.InstalledAppDetails"
-                intent.setClassName(settingsPackageName, appDetailsClassName)
-                val uri = Uri.fromParts("package", context.packageName, null)
-                intent.data = uri
-                context.startActivity(intent, null)
+        if (!serviceEnabled) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp)
+            ) {
+                Text(
+                    modifier = Modifier.padding(10.dp),
+                    text = stringResource(R.string.info_restricted_settings)
+                )
             }
-        ) { Text(stringResource(R.string.open_app_info)) }
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    val intent = Intent()
+                    val settingsPackageName = "com.android.settings"
+                    val appDetailsClassName =
+                        "com.android.settings.applications.InstalledAppDetails"
+                    intent.setClassName(settingsPackageName, appDetailsClassName)
+                    val uri = Uri.fromParts("package", context.packageName, null)
+                    intent.data = uri
+                    context.startActivity(intent, null)
+                }
+            ) { Text(stringResource(R.string.open_app_info)) }
+        }
     }
 }
 
