@@ -1,5 +1,7 @@
 # Quest Presence
 
+## This is no longer mantained, as Meta has made an official version of that, which works more reliable
+
 Discord Rich Presence for Meta Quest - Display the game you are playing on your Quest on Discord.
 
 <div align="center">
